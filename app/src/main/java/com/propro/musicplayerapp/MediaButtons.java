@@ -13,29 +13,28 @@ import android.view.ViewConfiguration;
 
 public class MediaButtons extends View {
 
-    //the number of slice
+    // progressBar count 0-100
+    public float progress = 60;
+
+    // the number of slice
     private int mSlices = 4;
 
-    //the angle of each slice
+    // the angle of each slice
     private int degreeStep = 360 / 8;
-
-    private int quarterDegreeMinus = -90;
 
     private float mOuterRadius;
     private float mInnerRadius;
 
-    //using radius square to prevent square root calculation
+    // using radius square to prevent square root calculation
     private float outerRadiusSquare;
     private float innerRadiusSquare;
 
     private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private RectF mSliceOval = new RectF();
 
-    private static final double quarterCircle = Math.PI / 2;
-
     private float innerRadiusRatio = 0.55F;
 
-    //color for your slice
+    // color for your slice
     private int[] colors = new int[]{Color.GRAY};
 
     private int mCenterX;
@@ -49,7 +48,7 @@ public class MediaButtons extends View {
     private float mLatestDownY;
 
     public interface OnSliceClickListener{
-        void onSlickClick(int slicePosition);
+        void onSlickClick(int slicePosition, float progress);
     }
 
     public MediaButtons(Context context){
@@ -99,14 +98,62 @@ public class MediaButtons extends View {
             case MotionEvent.ACTION_DOWN:
                 mLatestDownX = currX;
                 mLatestDownY = currY;
-
                 mPressed = true;
+
+                // location variables
+                int dx;
+                int dy;
+                int distanceSquare;
+
+                // if progressbar clicked
+                dx = (int) currX - mCenterX;
+                dy = (int) currY - mCenterY;
+                distanceSquare = dx * dx + dy * dy;
+
+                if(distanceSquare > innerRadiusSquare && distanceSquare < outerRadiusSquare){
+                    double angle = Math.atan2(dy, dx);
+
+                    // if angle is on negative side (on progressBar field) save new progress
+                    if(angle < 0){
+                        progress = (float) (100 - (angle / -(Math.PI))*100);
+
+                        // draw new progress
+                        this.invalidate();
+                    }
+                    else {
+                        if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
+                        break;
+                    }
+                }
                 break;
             case MotionEvent.ACTION_MOVE:
+                if(mPressed){
+                    dx = (int) currX - mCenterX;
+                    dy = (int) currY - mCenterY;
+                    distanceSquare = dx * dx + dy * dy;
 
+                    // on the outer ring
+                    if(distanceSquare > innerRadiusSquare && distanceSquare < outerRadiusSquare){
+                        double angle = Math.atan2(dy, dx);
 
-                if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
-                break;
+                        // if angle is on negative side (on progressBar field) save new progress
+                        if(angle < 0){
+                            progress = (float) (100 - (angle / -(Math.PI))*100);
+
+                            // draw new progress
+                            this.invalidate();
+                        }
+                        else {
+                            if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
+                            break;
+                        }
+                    }
+                    // in play button
+                    else if (distanceSquare < innerRadiusSquare){
+                        if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
+                        break;
+                    }
+                }
             case MotionEvent.ACTION_UP:
 
                 /* ------- SLICE INDEXES EXPLAINED ---------
@@ -118,11 +165,11 @@ public class MediaButtons extends View {
                 // 3 = previousSongButton
                    ----------------------------------------- */
                 if(mPressed){
-                    int dx = (int) currX - mCenterX;
-                    int dy = (int) currY - mCenterY;
-                    int distanceSquare = dx * dx + dy * dy;
+                    dx = (int) currX - mCenterX;
+                    dy = (int) currY - mCenterY;
+                    distanceSquare = dx * dx + dy * dy;
 
-                    //if the distance between touchpoint and centerpoint is smaller than outerRadius and longer than innerRadius, then we're in the clickable area
+                    // if the distance between touchpoint and centerpoint is smaller than outerRadius and longer than innerRadius, then we're in the clickable area
                     if(distanceSquare > innerRadiusSquare && distanceSquare < outerRadiusSquare){
 
                         //get the angle to detect which slice is currently being click
@@ -130,10 +177,7 @@ public class MediaButtons extends View {
                         double rawSliceIndex = -1;
                         Log.d("Angle: ", String.valueOf(angle));
 
-                        if(angle < 0){
-                            // Check angle and adjust progressbar
-                            Log.d("ProgressBar: ", "CLICKED");
-                        }else if(angle >= 0 && angle < Math.PI/4){
+                        if(angle >= 0 && angle < Math.PI/4){
                             rawSliceIndex = 0;
                         }else if(angle >= Math.PI/4 && angle < Math.PI/2){
                             rawSliceIndex = 1;
@@ -144,17 +188,17 @@ public class MediaButtons extends View {
                         }
 
                         if(mOnSliceClickListener != null){
-                            mOnSliceClickListener.onSlickClick((int) rawSliceIndex);
+                            mOnSliceClickListener.onSlickClick((int) rawSliceIndex, progress);
                         }
                     }
-                    // If the distance between touchpoint and centerpoint is smaller than innerRadius, the playButton is clicked
+                    // if the distance between touchpoint and centerpoint is smaller than innerRadius, the playButton is clicked
                     else if (distanceSquare < innerRadiusSquare){
                         if(mOnSliceClickListener != null){
-                            mOnSliceClickListener.onSlickClick(-2);
+                            mOnSliceClickListener.onSlickClick(-2, progress);
                         }
                     }
+                    break;
                 }
-                break;
         }
 
         return true;
@@ -164,9 +208,16 @@ public class MediaButtons extends View {
     public void onDraw(Canvas canvas){
         int startAngle = 0;
 
-        //draw progressBar
+        // draw progressBar
+        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setColor(Color.GREEN);
+        canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mPaint);
 
-        //draw slice
+        mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setColor(Color.WHITE);
+        canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mPaint);
+
+        // draw slice
         for(int i = 0; i < mSlices; i++){
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setColor(colors[i % colors.length]);

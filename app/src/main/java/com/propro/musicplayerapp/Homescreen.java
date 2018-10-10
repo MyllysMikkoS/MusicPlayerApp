@@ -26,8 +26,9 @@ public class Homescreen extends AppCompatActivity {
         mediaButtons = new MediaButtons(this);
         mediaButtons.setOnSliceClickListener(new MediaButtons.OnSliceClickListener() {
             @Override
-            public void onSlickClick(int slicePosition) {
-                textView.setText(String.valueOf(slicePosition));
+            public void onSlickClick(int slicePosition, float progress) {
+                String text = String.valueOf(slicePosition) + " " + String.valueOf(progress);
+                textView.setText(text);
             }
         });
         RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
