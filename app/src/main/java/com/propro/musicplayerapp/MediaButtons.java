@@ -5,6 +5,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.support.v4.content.ContextCompat;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -65,7 +66,7 @@ public class MediaButtons extends View {
         ViewConfiguration viewConfiguration = ViewConfiguration.get(context);
         mTouchSlop = viewConfiguration.getScaledTouchSlop();
 
-        mPaint.setStrokeWidth(10);
+        mPaint.setStrokeWidth(0);
     }
 
     public void setOnSliceClickListener(OnSliceClickListener onSliceClickListener){
@@ -208,23 +209,50 @@ public class MediaButtons extends View {
     public void onDraw(Canvas canvas){
         int startAngle = 0;
 
+        // draw background
+        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setColor(Color.BLACK);
+        canvas.drawArc(mSliceOval, 0, 180, true, mPaint);
+
+        mPaint.setStyle(Paint.Style.FILL);
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
+        canvas.drawArc(mSliceOval, -180, 180, true, mPaint);
+
+        /*mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
+        canvas.drawArc(mSliceOval, 0, 360, true, mPaint);*/
+
         // draw progressBar
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.GREEN);
+        mPaint.setColor(Color.parseColor("#592e00"));
         canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mPaint);
 
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(Color.WHITE);
-        canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mPaint);
+        /*mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
+        canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mPaint);*/
 
         // draw slice
         for(int i = 0; i < mSlices; i++){
             mPaint.setStyle(Paint.Style.FILL);
             mPaint.setColor(colors[i % colors.length]);
-            canvas.drawArc(mSliceOval, startAngle, degreeStep, true, mPaint);
+            int start = startAngle + 1;
+            int sweep = degreeStep - 2;
+            if (i == 0) {
+                start = startAngle + 2;
+                sweep = degreeStep - 3;
+            }
+            else if (i == 1 || i == 2){
+                start = startAngle + 1;
+                sweep = degreeStep - 2;
+            }
+            if (i == 3) {
+                start = startAngle + 1;
+                sweep = degreeStep - 3;
+            }
+            canvas.drawArc(mSliceOval, start, sweep, true, mPaint);
 
             mPaint.setStyle(Paint.Style.STROKE);
-            mPaint.setColor(Color.WHITE);
+            mPaint.setColor(Color.TRANSPARENT);
             canvas.drawArc(mSliceOval, startAngle, degreeStep, true, mPaint);
 
             startAngle += degreeStep;
@@ -232,10 +260,10 @@ public class MediaButtons extends View {
 
         //draw center circle
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.BLACK);
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
         canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mPaint);
-        mPaint.setStyle(Paint.Style.STROKE);
-        mPaint.setColor(Color.WHITE);
-        canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mPaint);
+        /*mPaint.setStyle(Paint.Style.STROKE);
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
+        canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mPaint);*/
     }
 }

@@ -2,7 +2,9 @@ package com.propro.musicplayerapp;
 
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -31,10 +33,10 @@ public class Homescreen extends AppCompatActivity {
                 textView.setText(text);
             }
         });
-        RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
+        final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        //params.leftMargin = 107;
+        //params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+        Log.d("WIDTH:", String.valueOf(mediaButtonsRelativeLayout.getWidth()));
         mediaButtonsRelativeLayout.addView(mediaButtons, params);
     }
 }
