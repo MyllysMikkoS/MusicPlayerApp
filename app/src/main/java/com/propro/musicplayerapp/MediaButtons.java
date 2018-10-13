@@ -45,6 +45,8 @@ public class MediaButtons extends View {
     private int mTouchSlop;
 
     private boolean mPressed;
+    private boolean mMoved;
+    private int finally_up = 0;
     private float mLatestDownX;
     private float mLatestDownY;
 
@@ -100,6 +102,9 @@ public class MediaButtons extends View {
                 mLatestDownX = currX;
                 mLatestDownY = currY;
                 mPressed = true;
+                mMoved = false;
+                finally_up = 0;
+                // -- DEBUG TEXT -- Log.d("ACTION: ", "DOWN");
 
                 // location variables
                 int dx;
@@ -128,6 +133,9 @@ public class MediaButtons extends View {
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
+                mMoved = true;
+                finally_up = 0;
+                // -- DEBUG TEXT -- Log.d("ACTION: ", "MOVE");
                 if(mPressed){
                     dx = (int) currX - mCenterX;
                     dy = (int) currY - mCenterY;
@@ -158,6 +166,7 @@ public class MediaButtons extends View {
             case MotionEvent.ACTION_UP:
 
                 /* ------- SLICE INDEXES EXPLAINED ---------
+                // -3 = something else
                 // -2 = playButton
                 // -1 = progressBar
                 // 0 = nextSongButton
@@ -165,18 +174,21 @@ public class MediaButtons extends View {
                 // 2 = repeatButton
                 // 3 = previousSongButton
                    ----------------------------------------- */
+                finally_up++;
+                // -- DEBUG TEXT -- Log.d("ACTION: ", "UP " + String.valueOf(finally_up) + " " + mMoved);
                 if(mPressed){
                     dx = (int) currX - mCenterX;
                     dy = (int) currY - mCenterY;
                     distanceSquare = dx * dx + dy * dy;
 
-                    // if the distance between touchpoint and centerpoint is smaller than outerRadius and longer than innerRadius, then we're in the clickable area
+                    // if the distance between touchpoint and centerpoint is smaller than
+                    // outerRadius and longer than innerRadius, then we're in the clickable area
                     if(distanceSquare > innerRadiusSquare && distanceSquare < outerRadiusSquare){
 
                         //get the angle to detect which slice is currently being click
                         double angle = Math.atan2(dy, dx);
-                        double rawSliceIndex = -1;
-                        Log.d("Angle: ", String.valueOf(angle));
+                        double rawSliceIndex = -3;
+                        // -- DEBUG TEXT -- Log.d("Angle: ", String.valueOf(angle));
 
                         if(angle >= 0 && angle < Math.PI/4){
                             rawSliceIndex = 0;
@@ -186,9 +198,18 @@ public class MediaButtons extends View {
                             rawSliceIndex = 2;
                         }else if(angle >= Math.PI*0.75 && angle < Math.PI){
                             rawSliceIndex = 3;
+                        }else if(angle < 0 && angle > -(Math.PI)){
+                            rawSliceIndex = -1;
                         }
 
-                        if(mOnSliceClickListener != null){
+                        // Update when no progressbar is touched
+                        if(mOnSliceClickListener != null && rawSliceIndex != -1){
+                            mOnSliceClickListener.onSlickClick((int) rawSliceIndex, progress);
+                        }
+
+                        // If progressbar is touched then update only after movement ends
+                        if(mOnSliceClickListener != null && rawSliceIndex == -1 &&
+                                ((finally_up == 1 && !mMoved) || (finally_up == 2 && mMoved))){
                             mOnSliceClickListener.onSlickClick((int) rawSliceIndex, progress);
                         }
                     }
