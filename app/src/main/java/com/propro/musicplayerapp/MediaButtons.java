@@ -27,6 +27,10 @@ public class MediaButtons extends View {
     private float mOuterRadius;
     private float mInnerRadius;
 
+    // slice colors
+    private int[] colors = new int[4];
+    private int playButtonColor;
+
     // using radius square to prevent square root calculation
     private float outerRadiusSquare;
     private float innerRadiusSquare;
@@ -84,6 +88,12 @@ public class MediaButtons extends View {
         mProgressPaint.setMaskFilter(new BlurMaskFilter(120, BlurMaskFilter.Blur.INNER));
         mCircleShadowPaint.setStyle(Paint.Style.FILL);
         mCircleShadowPaint.setMaskFilter(new BlurMaskFilter(40, BlurMaskFilter.Blur.INNER));
+
+        colors[0] = R.color.sliceColor;
+        colors[1] = R.color.sliceColor;
+        colors[2] = R.color.sliceColor;
+        colors[3] = R.color.sliceColor;
+        playButtonColor = R.color.middleCircleShadow;
     }
 
     public void setOnSliceClickListener(OnSliceClickListener onSliceClickListener){
@@ -143,9 +153,28 @@ public class MediaButtons extends View {
                         this.invalidate();
                     }
                     else {
+                        // Set pressed button color
+                        if (angle >= 0 && angle < Math.PI/4) {
+                            colors[0] = R.color.slicePressed;
+                            invalidate();
+                        }else if(angle >= Math.PI/4 && angle < Math.PI/2){
+                            colors[1] = R.color.slicePressed;
+                            invalidate();
+                        }else if(angle >= Math.PI/2 && angle < Math.PI*0.75){
+                            colors[2] = R.color.slicePressed;
+                            invalidate();
+                        }else if(angle >= Math.PI*0.75 && angle < Math.PI){
+                            colors[3] = R.color.slicePressed;
+                            invalidate();
+                        }
+
                         if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
                         break;
                     }
+                }
+                else if(distanceSquare < innerRadiusSquare){
+                    playButtonColor = R.color.middleCirclePressed;
+                    invalidate();
                 }
                 break;
             case MotionEvent.ACTION_MOVE:
@@ -186,6 +215,16 @@ public class MediaButtons extends View {
                     }
                 }
             case MotionEvent.ACTION_UP:
+
+                // Restore button colors
+                if(mInsideProgressbar != 1) {
+                    colors[0] = R.color.sliceColor;
+                    colors[1] = R.color.sliceColor;
+                    colors[2] = R.color.sliceColor;
+                    colors[3] = R.color.sliceColor;
+                    playButtonColor = R.color.middleCircleShadow;
+                    invalidate();
+                }
 
                 /* ------- SLICE INDEXES EXPLAINED ---------
                 // -3 = something else
@@ -297,7 +336,7 @@ public class MediaButtons extends View {
         // draw slice
         for(int i = 0; i < mSlices; i++){
             mPaint.setStyle(Paint.Style.FILL);
-            mPaint.setColor(ContextCompat.getColor(getContext(), R.color.sliceColor));
+            mPaint.setColor(ContextCompat.getColor(getContext(), colors[i]));
             int start = startAngle + 1;
             int sweep = degreeStep - 2;
             if (i == 0) {
@@ -334,7 +373,7 @@ public class MediaButtons extends View {
         canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mPaint);*/
 
         // Draw shadow
-        mCircleShadowPaint.setColor(ContextCompat.getColor(getContext(), R.color.middleCircleShadow));
+        mCircleShadowPaint.setColor(ContextCompat.getColor(getContext(), playButtonColor));
         canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mCircleShadowPaint);
     }
 }
