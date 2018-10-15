@@ -1,6 +1,7 @@
 package com.propro.musicplayerapp;
 
 import android.content.Context;
+import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
@@ -31,12 +32,13 @@ public class MediaButtons extends View {
     private float innerRadiusSquare;
 
     private Paint mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mShadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mProgressPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mProgressBGPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private Paint mCircleShadowPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private RectF mSliceOval = new RectF();
 
     private float innerRadiusRatio = 0.55F;
-
-    // color for your slice
-    private int[] colors = new int[]{Color.GRAY};
 
     private int mCenterX;
     private int mCenterY;
@@ -46,6 +48,7 @@ public class MediaButtons extends View {
 
     private boolean mPressed;
     private boolean mMoved;
+    private int mInsideProgressbar = 0;
     private int finally_up = 0;
     private float mLatestDownX;
     private float mLatestDownY;
@@ -69,6 +72,18 @@ public class MediaButtons extends View {
         mTouchSlop = viewConfiguration.getScaledTouchSlop();
 
         mPaint.setStrokeWidth(0);
+        setLayerType(LAYER_TYPE_SOFTWARE, mShadowPaint);
+        setLayerType(LAYER_TYPE_SOFTWARE, mProgressPaint);
+        setLayerType(LAYER_TYPE_SOFTWARE, mProgressBGPaint);
+        setLayerType(LAYER_TYPE_SOFTWARE, mCircleShadowPaint);
+        mShadowPaint.setStyle(Paint.Style.FILL);
+        mShadowPaint.setMaskFilter(new BlurMaskFilter(120, BlurMaskFilter.Blur.INNER));
+        mProgressBGPaint.setStyle(Paint.Style.FILL);
+        mProgressBGPaint.setMaskFilter(new BlurMaskFilter(240, BlurMaskFilter.Blur.INNER));
+        mProgressPaint.setStyle(Paint.Style.FILL);
+        mProgressPaint.setMaskFilter(new BlurMaskFilter(120, BlurMaskFilter.Blur.INNER));
+        mCircleShadowPaint.setStyle(Paint.Style.FILL);
+        mCircleShadowPaint.setMaskFilter(new BlurMaskFilter(40, BlurMaskFilter.Blur.INNER));
     }
 
     public void setOnSliceClickListener(OnSliceClickListener onSliceClickListener){
@@ -104,6 +119,7 @@ public class MediaButtons extends View {
                 mPressed = true;
                 mMoved = false;
                 finally_up = 0;
+                mInsideProgressbar = 0;
                 // -- DEBUG TEXT -- Log.d("ACTION: ", "DOWN");
 
                 // location variables
@@ -148,19 +164,25 @@ public class MediaButtons extends View {
                         // if angle is on negative side (on progressBar field) save new progress
                         if(angle < 0){
                             progress = (float) (100 - (angle / -(Math.PI))*100);
-
+                            mInsideProgressbar = 1;
                             // draw new progress
                             this.invalidate();
                         }
                         else {
-                            if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
-                            break;
+                            if (mInsideProgressbar != 1) {
+                                if (Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop)
+                                    mPressed = false;
+                                break;
+                            }
                         }
                     }
                     // in play button
                     else if (distanceSquare < innerRadiusSquare){
-                        if(Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop) mPressed = false;
-                        break;
+                        if (mInsideProgressbar != 1) {
+                            if (Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop)
+                                mPressed = false;
+                            break;
+                        }
                     }
                 }
             case MotionEvent.ACTION_UP:
@@ -181,13 +203,14 @@ public class MediaButtons extends View {
                     dy = (int) currY - mCenterY;
                     distanceSquare = dx * dx + dy * dy;
 
+                    //get the angle to detect which slice is currently being click
+                    double angle = Math.atan2(dy, dx);
+                    double rawSliceIndex = -3;
+
                     // if the distance between touchpoint and centerpoint is smaller than
                     // outerRadius and longer than innerRadius, then we're in the clickable area
                     if(distanceSquare > innerRadiusSquare && distanceSquare < outerRadiusSquare){
 
-                        //get the angle to detect which slice is currently being click
-                        double angle = Math.atan2(dy, dx);
-                        double rawSliceIndex = -3;
                         // -- DEBUG TEXT -- Log.d("Angle: ", String.valueOf(angle));
 
                         if(angle >= 0 && angle < Math.PI/4){
@@ -203,20 +226,31 @@ public class MediaButtons extends View {
                         }
 
                         // Update when no progressbar is touched
-                        if(mOnSliceClickListener != null && rawSliceIndex != -1){
+                        if(mOnSliceClickListener != null && rawSliceIndex != -1 && mInsideProgressbar != 1){
                             mOnSliceClickListener.onSlickClick((int) rawSliceIndex, progress);
                         }
-
                         // If progressbar is touched then update only after movement ends
-                        if(mOnSliceClickListener != null && rawSliceIndex == -1 &&
+                        else if(mOnSliceClickListener != null && rawSliceIndex == -1 && mInsideProgressbar == 1 &&
                                 ((finally_up == 1 && !mMoved) || (finally_up == 2 && mMoved))){
-                            mOnSliceClickListener.onSlickClick((int) rawSliceIndex, progress);
+                            mOnSliceClickListener.onSlickClick(-1, progress);
+                        }
+                        // If progressbar is touched but movement ends outside progressbar
+                        else if(mOnSliceClickListener != null && (angle >= 0 && angle < Math.PI) && mInsideProgressbar == 1 &&
+                                ((finally_up == 1 && !mMoved) || (finally_up == 2 && mMoved))){
+                            mOnSliceClickListener.onSlickClick( -1, progress);
                         }
                     }
                     // if the distance between touchpoint and centerpoint is smaller than innerRadius, the playButton is clicked
-                    else if (distanceSquare < innerRadiusSquare){
+                    else if (distanceSquare < innerRadiusSquare && mInsideProgressbar != 1){
                         if(mOnSliceClickListener != null){
                             mOnSliceClickListener.onSlickClick(-2, progress);
+                        }
+                    }
+                    else {
+                        // If progressbar is touched then update only after movement ends
+                        if(mOnSliceClickListener != null && mInsideProgressbar == 1 &&
+                                ((finally_up == 1 && !mMoved) || (finally_up == 2 && mMoved))){
+                            mOnSliceClickListener.onSlickClick(-1, progress);
                         }
                     }
                     break;
@@ -232,12 +266,16 @@ public class MediaButtons extends View {
 
         // draw background
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.BLACK);
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.lowerHalfCircle));
         canvas.drawArc(mSliceOval, 0, 180, true, mPaint);
 
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorAccent));
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.progressBarBG));
         canvas.drawArc(mSliceOval, -180, 180, true, mPaint);
+
+        // Draw shadow
+        mProgressBGPaint.setColor(ContextCompat.getColor(getContext(), R.color.progressBarBGShadow));
+        canvas.drawArc(mSliceOval,-180, 360, true, mProgressBGPaint);
 
         /*mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
@@ -245,8 +283,12 @@ public class MediaButtons extends View {
 
         // draw progressBar
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(Color.parseColor("#592e00"));
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.progressBar));
         canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mPaint);
+
+        // Draw shadow
+        mProgressPaint.setColor(ContextCompat.getColor(getContext(), R.color.progressBarShadow));
+        canvas.drawArc(mSliceOval, -180, progress*1.8f, true, mProgressPaint);
 
         /*mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
@@ -255,7 +297,7 @@ public class MediaButtons extends View {
         // draw slice
         for(int i = 0; i < mSlices; i++){
             mPaint.setStyle(Paint.Style.FILL);
-            mPaint.setColor(colors[i % colors.length]);
+            mPaint.setColor(ContextCompat.getColor(getContext(), R.color.sliceColor));
             int start = startAngle + 1;
             int sweep = degreeStep - 2;
             if (i == 0) {
@@ -276,15 +318,23 @@ public class MediaButtons extends View {
             mPaint.setColor(Color.TRANSPARENT);
             canvas.drawArc(mSliceOval, startAngle, degreeStep, true, mPaint);
 
+            // Draw shadow
+            mShadowPaint.setColor(ContextCompat.getColor(getContext(), R.color.buttonShadow));
+            canvas.drawArc(mSliceOval, start, sweep, true, mShadowPaint);
+
             startAngle += degreeStep;
         }
 
         //draw center circle
         mPaint.setStyle(Paint.Style.FILL);
-        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimary));
+        mPaint.setColor(ContextCompat.getColor(getContext(), R.color.middleCircle));
         canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mPaint);
         /*mPaint.setStyle(Paint.Style.STROKE);
         mPaint.setColor(ContextCompat.getColor(getContext(), R.color.colorPrimaryDark));
         canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mPaint);*/
+
+        // Draw shadow
+        mCircleShadowPaint.setColor(ContextCompat.getColor(getContext(), R.color.middleCircleShadow));
+        canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mCircleShadowPaint);
     }
 }

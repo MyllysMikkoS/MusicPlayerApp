@@ -35,8 +35,6 @@ public class Homescreen extends AppCompatActivity {
         });
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        //params.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
-        Log.d("WIDTH:", String.valueOf(mediaButtonsRelativeLayout.getWidth()));
         mediaButtonsRelativeLayout.addView(mediaButtons, params);
     }
 }
