@@ -23,7 +23,7 @@ public class Homescreen extends AppCompatActivity {
         // Init views
         textView = findViewById(R.id.textView);
 
-        // Create mediabuttons
+        // Create MediaButtonsWidget
         mediaButtonsRelativeLayout = findViewById(R.id.MediaButtonsRelativeLayout);
         mediaButtons = new MediaButtons(this);
         mediaButtons.setOnSliceClickListener(new MediaButtons.OnSliceClickListener() {

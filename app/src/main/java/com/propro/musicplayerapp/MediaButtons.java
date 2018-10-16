@@ -1,6 +1,8 @@
 package com.propro.musicplayerapp;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.BlurMaskFilter;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -12,6 +14,8 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewConfiguration;
+import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 
 public class MediaButtons extends View {
 
@@ -26,6 +30,10 @@ public class MediaButtons extends View {
 
     private float mOuterRadius;
     private float mInnerRadius;
+
+    // shuffle and repeat
+    public boolean shuffle = false;
+    public boolean repeat = false;
 
     // slice colors
     private int[] colors = new int[4];
@@ -56,6 +64,12 @@ public class MediaButtons extends View {
     private int finally_up = 0;
     private float mLatestDownX;
     private float mLatestDownY;
+
+    // Icons
+    private Bitmap skipNextIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_skip_next);
+    private Bitmap skipPreviousIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_skip_previous);
+    private Bitmap shuffleIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_shuffle);
+    private Bitmap repeatIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_repeat);
 
     public interface OnSliceClickListener{
         void onSlickClick(int slicePosition, float progress);
@@ -148,7 +162,7 @@ public class MediaButtons extends View {
                     // if angle is on negative side (on progressBar field) save new progress
                     if(angle < 0){
                         progress = (float) (100 - (angle / -(Math.PI))*100);
-
+                        mInsideProgressbar = 1;
                         // draw new progress
                         this.invalidate();
                     }
@@ -191,14 +205,20 @@ public class MediaButtons extends View {
                         double angle = Math.atan2(dy, dx);
 
                         // if angle is on negative side (on progressBar field) save new progress
-                        if(angle < 0){
+                        if(angle < 0 && mInsideProgressbar == 1){
                             progress = (float) (100 - (angle / -(Math.PI))*100);
-                            mInsideProgressbar = 1;
+                            //mInsideProgressbar = 1;
                             // draw new progress
                             this.invalidate();
                         }
                         else {
                             if (mInsideProgressbar != 1) {
+                                if (angle >= Math.PI/4 && angle < Math.PI/2 && !shuffle){
+                                    colors[1] = R.color.sliceColor;
+                                }
+                                else if (angle >= Math.PI/2 && angle < Math.PI*0.75 && !repeat){
+                                    colors[2] = R.color.sliceColor;
+                                }
                                 if (Math.abs(currX - mLatestDownX) > mTouchSlop || Math.abs(currY - mLatestDownY) > mTouchSlop)
                                     mPressed = false;
                                 break;
@@ -217,14 +237,10 @@ public class MediaButtons extends View {
             case MotionEvent.ACTION_UP:
 
                 // Restore button colors
-                if(mInsideProgressbar != 1) {
-                    colors[0] = R.color.sliceColor;
-                    colors[1] = R.color.sliceColor;
-                    colors[2] = R.color.sliceColor;
-                    colors[3] = R.color.sliceColor;
-                    playButtonColor = R.color.middleCircleShadow;
-                    invalidate();
-                }
+                colors[0] = R.color.sliceColor;
+                colors[3] = R.color.sliceColor;
+                playButtonColor = R.color.middleCircleShadow;
+                invalidate();
 
                 /* ------- SLICE INDEXES EXPLAINED ---------
                 // -3 = something else
@@ -266,6 +282,27 @@ public class MediaButtons extends View {
 
                         // Update when no progressbar is touched
                         if(mOnSliceClickListener != null && rawSliceIndex != -1 && mInsideProgressbar != 1){
+                            // check repeat and shuffle
+                            if (rawSliceIndex == 1){
+                                if (!shuffle){
+                                    shuffle = true;
+                                    colors[1] = R.color.slicePressed;
+                                }
+                                else {
+                                    shuffle = false;
+                                    colors[1] = R.color.sliceColor;
+                                }
+                            }
+                            else if (rawSliceIndex == 2){
+                                if (!repeat){
+                                    repeat = true;
+                                    colors[2] = R.color.slicePressed;
+                                }
+                                else {
+                                    repeat = false;
+                                    colors[2] = R.color.sliceColor;
+                                }
+                            }
                             mOnSliceClickListener.onSlickClick((int) rawSliceIndex, progress);
                         }
                         // If progressbar is touched then update only after movement ends
@@ -375,5 +412,11 @@ public class MediaButtons extends View {
         // Draw shadow
         mCircleShadowPaint.setColor(ContextCompat.getColor(getContext(), playButtonColor));
         canvas.drawCircle(mCenterX, mCenterY, mInnerRadius, mCircleShadowPaint);
+
+        // Draw media icons
+        canvas.drawBitmap(skipNextIcon, mCenterX + getWidth()*0.29f, mCenterY + getHeight()*0.07f, mPaint);
+        canvas.drawBitmap(skipPreviousIcon, mCenterX - getWidth()*0.29f - skipPreviousIcon.getWidth(), mCenterY + getHeight()*0.07f, mPaint);
+        canvas.drawBitmap(shuffleIcon, mCenterX + getWidth()*0.085f, mCenterY + getHeight()*0.275f, mPaint);
+        canvas.drawBitmap(repeatIcon, mCenterX - getWidth()*0.085f - repeatIcon.getWidth(), mCenterY + getHeight()*0.275f, mPaint);
     }
 }
