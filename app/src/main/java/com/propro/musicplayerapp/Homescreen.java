@@ -13,7 +13,9 @@ public class Homescreen extends AppCompatActivity {
     // Views
     RelativeLayout mediaButtonsRelativeLayout;
     MediaButtons mediaButtons;
-    TextView textView;
+    TextView songTitle;
+    TextView artistName;
+    TextView streamingInfo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,7 +23,9 @@ public class Homescreen extends AppCompatActivity {
         setContentView(R.layout.activity_homescreen);
 
         // Init views
-        textView = findViewById(R.id.textView);
+        songTitle = findViewById(R.id.songTitleTextView);
+        artistName = findViewById(R.id.artistNameTextView);
+        streamingInfo = findViewById(R.id.streamingTextView);
 
         // Create MediaButtonsWidget
         mediaButtonsRelativeLayout = findViewById(R.id.MediaButtonsRelativeLayout);
@@ -30,7 +34,7 @@ public class Homescreen extends AppCompatActivity {
             @Override
             public void onSlickClick(int slicePosition, float progress) {
                 String text = String.valueOf(slicePosition) + " " + String.valueOf(progress);
-                textView.setText(text);
+                songTitle.setText(text);
             }
         });
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(

@@ -31,9 +31,12 @@ public class MediaButtons extends View {
     private float mOuterRadius;
     private float mInnerRadius;
 
-    // shuffle and repeat
-    public boolean shuffle = false;
-    public boolean repeat = false;
+    // shuffle repeat and play
+    public static boolean shuffle = false;
+    public static boolean repeat = false;
+    public static boolean pause = true;
+    public static String currentTime = "1:27";
+    public static String songLength = "12:36";
 
     // slice colors
     private int[] colors = new int[4];
@@ -70,6 +73,8 @@ public class MediaButtons extends View {
     private Bitmap skipPreviousIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_skip_previous);
     private Bitmap shuffleIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_shuffle);
     private Bitmap repeatIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_repeat);
+    private Bitmap playIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_play);
+    private Bitmap pauseIcon = BitmapFactory.decodeResource(getResources(), R.drawable.ic_pause);
 
     public interface OnSliceClickListener{
         void onSlickClick(int slicePosition, float progress);
@@ -319,6 +324,8 @@ public class MediaButtons extends View {
                     // if the distance between touchpoint and centerpoint is smaller than innerRadius, the playButton is clicked
                     else if (distanceSquare < innerRadiusSquare && mInsideProgressbar != 1){
                         if(mOnSliceClickListener != null){
+                            if (pause) pause = false;
+                            else pause = true;
                             mOnSliceClickListener.onSlickClick(-2, progress);
                         }
                     }
@@ -418,5 +425,19 @@ public class MediaButtons extends View {
         canvas.drawBitmap(skipPreviousIcon, mCenterX - getWidth()*0.29f - skipPreviousIcon.getWidth(), mCenterY + getHeight()*0.07f, mPaint);
         canvas.drawBitmap(shuffleIcon, mCenterX + getWidth()*0.085f, mCenterY + getHeight()*0.275f, mPaint);
         canvas.drawBitmap(repeatIcon, mCenterX - getWidth()*0.085f - repeatIcon.getWidth(), mCenterY + getHeight()*0.275f, mPaint);
+
+        if (pause){
+            canvas.drawBitmap(playIcon, mCenterX - playIcon.getWidth()/2, mCenterY - playIcon.getHeight()/2, mPaint);
+        }
+        else {
+            canvas.drawBitmap(pauseIcon, mCenterX - pauseIcon.getWidth()/2, mCenterY - pauseIcon.getHeight()/2, mPaint);
+        }
+
+        // Draw times
+        mPaint.setTextAlign(Paint.Align.CENTER);
+        mPaint.setTextSize(playIcon.getHeight()*0.7f);
+        canvas.drawText(currentTime, mCenterX, mCenterY - getHeight()*0.11f, mPaint);
+        mPaint.setTextSize(playIcon.getHeight()*0.5f);
+        canvas.drawText(songLength, mCenterX, mCenterY + getHeight()*0.17f, mPaint);
     }
 }
