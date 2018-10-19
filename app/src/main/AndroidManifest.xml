@@ -16,6 +16,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".Settings" />
+        <activity android:name=".Music" />
+        <activity android:name=".Stream" />
+        <activity android:name=".Queue"></activity>
     </application>
 
 </manifest>

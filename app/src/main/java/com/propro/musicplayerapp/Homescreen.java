@@ -1,22 +1,21 @@
 package com.propro.musicplayerapp;
 
+import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toolbar;
 
 public class Homescreen extends AppCompatActivity {
 
     // Views
-    android.support.v7.widget.Toolbar toolbar;
+    Toolbar toolbar;
     RelativeLayout mediaButtonsRelativeLayout;
     MediaButtons mediaButtons;
     TextView songTitle;
@@ -68,19 +67,23 @@ public class Homescreen extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case android.R.id.home:
-                artistName.setText("settings");
+                Intent settings = new Intent(this, Settings.class);
+                startActivity(settings);
                 return true;
 
             case R.id.action_music:
-                artistName.setText("music");
+                Intent music = new Intent(this, Music.class);
+                startActivity(music);
                 return true;
 
             case R.id.action_stream:
-                artistName.setText("stream");
+                Intent stream = new Intent(this, Stream.class);
+                startActivity(stream);
                 return true;
 
             case R.id.action_queue:
-                artistName.setText("queue");
+                Intent queue = new Intent(this, Queue.class);
+                startActivity(queue);
                 return true;
         }
 
