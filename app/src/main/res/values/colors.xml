@@ -2,7 +2,7 @@
 <resources>
     <color name="colorPrimary">#ff0d00</color>
     <color name="colorPrimaryDark">#000000</color>
-    <color name="colorAccent">#ffe100</color>
+    <color name="colorAccent">#000000</color>
     <color name="buttonShadow">#ffffff</color>
     <color name="sliceColor">#797979</color>
     <color name="slicePressed">#ffe100</color>

@@ -17,11 +17,11 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <android.support.constraint.ConstraintLayout
-        android:id="@+id/musicSourcesHeader"
+        android:id="@+id/searchBarContainer"
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:background="@color/middleCircleShadow"
-        app:layout_constraintEnd_toEndOf="@+id/settingsListView"
+        app:layout_constraintEnd_toEndOf="@+id/queueListView"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/toolbar">
 
@@ -51,14 +51,14 @@
     </android.support.constraint.ConstraintLayout>
 
     <ListView
-        android:id="@+id/settingsListView"
+        android:id="@+id/queueListView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="1.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/musicSourcesHeader"
+        app:layout_constraintTop_toBottomOf="@+id/searchBarContainer"
         app:layout_constraintVertical_bias="1.0" />
 
 </android.support.constraint.ConstraintLayout>

@@ -7,12 +7,10 @@
     android:layout_height="wrap_content">
 
     <android.support.constraint.ConstraintLayout
-        android:id="@+id/musicSourcesHeader"
+        android:id="@+id/searchBarContainer"
         android:layout_width="match_parent"
         android:layout_height="51dp"
-        app:layout_constraintEnd_toEndOf="@+id/settingsListView"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar">
+        app:layout_constraintStart_toStartOf="parent">
 
         <TextView
             android:id="@+id/sourcePathTextView"
@@ -35,6 +33,7 @@
             android:layout_height="50dp"
             android:padding="10dp"
             android:layout_marginEnd="5dp"
+            android:contentDescription="remove"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             android:src="@drawable/ic_delete"/>
