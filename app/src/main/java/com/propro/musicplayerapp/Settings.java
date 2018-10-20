@@ -30,7 +30,6 @@ public class Settings extends AppCompatActivity {
         setSupportActionBar(toolbar);
         settingsListView = findViewById(R.id.queueListView);
 
-        // Later the paths are loaded from static container that holds all paths
         paths = new ArrayList<Source>();
         adapter = new SourcesAdapter(this, paths);
 

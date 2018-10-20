@@ -29,7 +29,6 @@ public class Queue extends AppCompatActivity {
         setSupportActionBar(toolbar);
         queueListView = findViewById(R.id.queueListView);
 
-        // Later the paths are loaded from static container that holds all paths
         queueSongs = new ArrayList<SongInfo>();
         adapter = new QueueAdapter(this, queueSongs);
         queueListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {

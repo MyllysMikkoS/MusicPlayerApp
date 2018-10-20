@@ -13,26 +13,45 @@
         app:layout_constraintStart_toStartOf="parent">
 
         <TextView
-            android:id="@+id/sourcePathTextView"
+            android:id="@+id/playlistNameTextView"
             android:layout_width="0dp"
             android:layout_height="60dp"
             android:singleLine="true"
-            android:ellipsize="start"
+            android:ellipsize="end"
             android:gravity="center_vertical"
             android:padding="10dp"
-            android:text="Path"
+            android:text="Playlist name"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="20dp"
-            app:layout_constraintEnd_toStartOf="@+id/deleteImage"
+            app:layout_constraintEnd_toStartOf="@+id/playPlaylistImage"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/deleteImage"
+            android:id="@+id/playPlaylistImage"
             android:layout_width="60dp"
             android:layout_height="60dp"
-            android:padding="10dp"
-            android:layout_marginEnd="5dp"
+            android:padding="15dp"
+            android:contentDescription="add to queue"
+            app:layout_constraintEnd_toStartOf="@id/addPlaylistToQueueImage"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@drawable/ic_play"/>
+
+        <ImageView
+            android:id="@+id/addPlaylistToQueueImage"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:padding="15dp"
+            android:contentDescription="add to queue"
+            app:layout_constraintEnd_toStartOf="@id/deletePlaylistImage"
+            app:layout_constraintTop_toTopOf="parent"
+            android:src="@drawable/ic_add"/>
+
+        <ImageView
+            android:id="@+id/deletePlaylistImage"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:padding="15dp"
             android:contentDescription="remove"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"

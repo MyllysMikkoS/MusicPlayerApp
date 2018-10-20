@@ -32,7 +32,6 @@ public class Stream extends AppCompatActivity {
         setSupportActionBar(toolbar);
         devicesListView = findViewById(R.id.devicesListView);
 
-        // Later the paths are loaded from static container that holds all paths
         devices = new ArrayList<DeviceInfo>();
         adapter = new StreamAdapter(this, devices);
 
