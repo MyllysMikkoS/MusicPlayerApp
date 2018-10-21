@@ -20,16 +20,26 @@
         android:id="@+id/songTitleTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
         android:text="song title"
         android:textAlignment="center"
-        android:textSize="30sp"
         android:textColor="@color/colorPrimaryDark"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="@+id/view"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginBottom="8dp"
+        android:layout_marginTop="8dp"
+        android:background="#00000000"
+        app:layout_constraintBottom_toTopOf="@+id/MediaButtonsRelativeLayout"
+        app:layout_constraintTop_toBottomOf="@+id/streamingTextView" />
 
     <TextView
         android:id="@+id/artistNameTextView"
@@ -40,29 +50,27 @@
         android:layout_marginTop="8dp"
         android:text="artist name"
         android:textAlignment="center"
-        android:textSize="24sp"
         android:textColor="@color/colorPrimaryDark"
+        android:textSize="24sp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.502"
+        app:layout_constraintHorizontal_bias="0.498"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/songTitleTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/view" />
 
     <TextView
         android:id="@+id/streamingTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
         android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="10dp"
         android:text="Playing: locally"
         android:textAlignment="center"
-        android:textSize="18sp"
         android:textColor="@color/colorPrimaryDark"
-        app:layout_constraintBottom_toTopOf="@+id/MediaButtonsRelativeLayout"
+        android:textSize="18sp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/artistNameTextView" />
+        app:layout_constraintTop_toBottomOf="@+id/toolbar" />
 
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
