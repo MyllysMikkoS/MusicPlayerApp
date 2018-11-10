@@ -34,12 +34,12 @@
             android:text="Music sources"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="24dp"
-            app:layout_constraintEnd_toStartOf="@+id/imageButton"
+            app:layout_constraintEnd_toStartOf="@+id/addFolderButton"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageButton
-            android:id="@+id/imageButton"
+            android:id="@+id/addFolderButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:background="#00ffffff"

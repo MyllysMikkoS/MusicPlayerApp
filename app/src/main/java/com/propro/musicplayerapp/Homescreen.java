@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Homescreen extends AppCompatActivity {
 
@@ -27,6 +28,10 @@ public class Homescreen extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_homescreen);
+
+        // Ask for permissions
+        PermissionChecks.getInstance().checkPermissionREAD_EXTERNAL_STORAGE(this);
+        PermissionChecks.getInstance().checkPermissionWRITE_EXTERNAL_STORAGE(this);
 
         // Init views
         toolbar = findViewById(R.id.toolbar);
@@ -72,8 +77,21 @@ public class Homescreen extends AppCompatActivity {
                 return true;
 
             case R.id.action_music:
-                Intent music = new Intent(this, Music.class);
-                startActivity(music);
+                // Check that permissions are granted, otherwise go back
+                if (PermissionChecks.getInstance().checkPermissionREAD_EXTERNAL_STORAGE(this)){
+                    if (PermissionChecks.getInstance().checkPermissionWRITE_EXTERNAL_STORAGE(this)) {
+                        Intent music = new Intent(this, Music.class);
+                        startActivity(music);
+                    }
+                    else {
+                        Toast.makeText(this, "No Write-External-Storage Permission",
+                                Toast.LENGTH_LONG).show();
+                    }
+                }
+                else {
+                    Toast.makeText(this, "No Read-External-Storage Permission",
+                            Toast.LENGTH_LONG).show();
+                }
                 return true;
 
             case R.id.action_stream:

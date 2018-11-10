@@ -66,7 +66,7 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
 
         // Populate the data into the template view using the data object
         try {
-            tvSongName.setText(songInfo.Name);
+            tvSongName.setText(songInfo.Title);
         } catch (NullPointerException e) {
             Log.d("Error: ", e.toString());
         }

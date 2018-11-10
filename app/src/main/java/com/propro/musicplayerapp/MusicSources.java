@@ -1,5 +1,7 @@
 package com.propro.musicplayerapp;
 
+import android.os.Environment;
+
 import java.util.ArrayList;
 
 public class MusicSources extends ArrayList<Source> {
@@ -13,10 +15,7 @@ public class MusicSources extends ArrayList<Source> {
             throw new RuntimeException("Use getInstance() method to get the single instance of this class.");
         }
 
-        add(new Source("music/own_music/very_long_path/lets_see_if_it/fits"));
-        add(new Source("downloads"));
-        add(new Source("tmp/tmp_music"));
-        add(new Source("own/music"));
+        add(new Source(Environment.getExternalStorageDirectory() + "/Music/Test"));
     }
 
     // Thread safe implementation

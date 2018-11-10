@@ -50,7 +50,7 @@ public class QueueAdapter extends ArrayAdapter<SongInfo> {
 
         // Populate the data into the template view using the data object
         try {
-            tvSongName.setText(songInfo.Name);
+            tvSongName.setText(songInfo.Title);
             tvArtistName.setText(songInfo.Artist);
         } catch (NullPointerException e) {
             Log.d("Error: ", e.toString());
