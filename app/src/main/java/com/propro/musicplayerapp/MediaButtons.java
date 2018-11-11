@@ -324,8 +324,8 @@ public class MediaButtons extends View {
                     // if the distance between touchpoint and centerpoint is smaller than innerRadius, the playButton is clicked
                     else if (distanceSquare < innerRadiusSquare && mInsideProgressbar != 1){
                         if(mOnSliceClickListener != null){
-                            if (pause) pause = false;
-                            else pause = true;
+                            // pause/unpause only if songs in queue
+                            if (QueueSongs.getInstance().size() != 0) pause = !pause;
                             mOnSliceClickListener.onSlickClick(-2, progress);
                         }
                     }

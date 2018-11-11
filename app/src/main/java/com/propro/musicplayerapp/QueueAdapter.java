@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -42,8 +43,18 @@ public class QueueAdapter extends ArrayAdapter<SongInfo> {
             public void onClick(View v) {
                 // Set delete-event
                 Log.d("Delete: ", "clicked " + position);
-                remove(QueueSongs.getInstance().get(position));
-                QueueSongs.getInstance().remove(position);
+
+                if (position == 0 && Homescreen.musicService.isPlaying()){
+                    // Remove song from adapter
+                    remove(QueueSongs.getInstance().get(position));
+                    // skip to next song
+                    Homescreen.musicService.skipToNext();
+                }
+                else {
+                    // Remove song from adapter
+                    remove(QueueSongs.getInstance().get(position));
+                    QueueSongs.getInstance().remove(position);
+                }
                 Log.d("ITEMS IN QUEUE: ", "i: " + QueueSongs.getInstance().size());
             }
         });

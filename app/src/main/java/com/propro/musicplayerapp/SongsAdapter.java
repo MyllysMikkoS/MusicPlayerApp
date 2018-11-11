@@ -49,6 +49,7 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
             public void onClick(View v) {
                 // Set add-event
                 Log.d("Song Add to queue: ", "clicked " + position);
+                QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
             }
         });
         ImageView ivDelete = (ImageView) convertView.findViewById(R.id.deleteSongImage);

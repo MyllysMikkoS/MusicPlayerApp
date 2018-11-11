@@ -17,6 +17,7 @@ public class Queue extends AppCompatActivity {
 
     private static QueueAdapter adapter;
     ArrayList<SongInfo> queueSongs;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

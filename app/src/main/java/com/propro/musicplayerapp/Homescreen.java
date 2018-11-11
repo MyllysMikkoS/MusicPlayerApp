@@ -1,6 +1,11 @@
 package com.propro.musicplayerapp;
 
+import android.app.Application;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -23,6 +28,11 @@ public class Homescreen extends AppCompatActivity {
     TextView artistName;
     TextView streamingInfo;
 
+    // Player
+    public static MusicService musicService;
+    private Intent playIntent;
+    private boolean musicBound = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -32,6 +42,7 @@ public class Homescreen extends AppCompatActivity {
         // Ask for permissions
         PermissionChecks.getInstance().checkPermissionREAD_EXTERNAL_STORAGE(this);
         PermissionChecks.getInstance().checkPermissionWRITE_EXTERNAL_STORAGE(this);
+        PermissionChecks.getInstance().checkPermissionWAKE_LOCK(this);
 
         // Init views
         toolbar = findViewById(R.id.toolbar);
@@ -55,12 +66,68 @@ public class Homescreen extends AppCompatActivity {
             public void onSlickClick(int slicePosition, float progress) {
                 String text = String.valueOf(slicePosition) + " " + String.valueOf(progress);
                 songTitle.setText(text);
+                // IF NO SONGS ON QUEUE THEN MEDIABUTTONS WONT TRIGGER ANYTHING
+                if (QueueSongs.getInstance().size() != 0) {
+                    // WHEN PLAY/PAUSE BUTTON IS CLICKED
+                    if (slicePosition == -2 && !MediaButtons.pause) {
+                        musicService.continueQueue();
+                    }
+                    else if (slicePosition == -2 && MediaButtons.pause){
+                        musicService.pauseQueue();
+                    }
+                }
+                else {
+                    Toast.makeText(getApplicationContext(), "No songs in queue",
+                            Toast.LENGTH_SHORT).show();
+                }
             }
         });
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mediaButtonsRelativeLayout.addView(mediaButtons, params);
     }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (playIntent == null){
+            playIntent = new Intent(this, MusicService.class);
+            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+            startService(playIntent);
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (musicConnection != null){
+            unbindService(musicConnection);
+        }
+        Log.d("ONDESTROY: ", "CALLED");
+    }
+
+    // connect to MusicService
+    private ServiceConnection musicConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
+            // get service
+            musicService = binder.getService(mediaButtons);
+            // pass list
+            musicBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            musicService = null;
+            musicBound = false;
+        }
+    };
 
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
@@ -80,17 +147,23 @@ public class Homescreen extends AppCompatActivity {
                 // Check that permissions are granted, otherwise go back
                 if (PermissionChecks.getInstance().checkPermissionREAD_EXTERNAL_STORAGE(this)){
                     if (PermissionChecks.getInstance().checkPermissionWRITE_EXTERNAL_STORAGE(this)) {
-                        Intent music = new Intent(this, Music.class);
-                        startActivity(music);
+                        if (PermissionChecks.getInstance().checkPermissionWAKE_LOCK(this)){
+                            Intent music = new Intent(this, Music.class);
+                            startActivity(music);
+                        }
+                        else {
+                            Toast.makeText(this, "No Wake-Lock Permission",
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     }
                     else {
                         Toast.makeText(this, "No Write-External-Storage Permission",
-                                Toast.LENGTH_LONG).show();
+                                Toast.LENGTH_SHORT).show();
                     }
                 }
                 else {
                     Toast.makeText(this, "No Read-External-Storage Permission",
-                            Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_SHORT).show();
                 }
                 return true;
 

@@ -89,7 +89,7 @@ public class Settings extends AppCompatActivity {
             } else {
                 Log.d("PATH ALREADY ADDED: ", path);
                 Toast.makeText(this, "Path already added",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_SHORT).show();
             }
 
             // Update listView
