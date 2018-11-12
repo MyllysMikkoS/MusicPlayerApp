@@ -25,6 +25,7 @@ public class MusicService extends Service
     private boolean isPrepared;
     private MediaButtons mediaButtons;
     private ArrayList<SongInfo> songHistory;
+    private int previousSwapTimeInMillis = 1000;
 
     @Override
     public void onCreate() {
@@ -84,8 +85,7 @@ public class MusicService extends Service
         else {
             MediaButtons.pause = true;
             mediaButtons.invalidate();
-            Toast.makeText(this, "No songs in queue",
-                    Toast.LENGTH_SHORT).show();
+            CustomUtilities.showToast(this, "No songs in queue");
         }
     }
 
@@ -134,8 +134,7 @@ public class MusicService extends Service
                 player.prepareAsync();
             } else {
                 Log.d("MUSIC SERVICE: ", "No songs in queue");
-                Toast.makeText(getApplicationContext(), "No songs in queue",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "No songs in queue");
             }
         }
         catch (Exception e){
@@ -148,14 +147,13 @@ public class MusicService extends Service
             if (QueueSongs.getInstance().size() > 0) {
                 Log.d("Player is prepared: ", String.valueOf(isPrepared));
                 if (isPrepared) {
-                    player.start();
+                    if (!player.isPlaying()) player.start();
                 } else {
                     playSong();
                 }
             }
             else {
-                Toast.makeText(this, "No songs in queue",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "No songs in queue");
             }
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error continuing queue", e);
@@ -165,11 +163,10 @@ public class MusicService extends Service
     public void pauseQueue(){
         try {
             if (QueueSongs.getInstance().size() > 0) {
-                player.pause();
+                if (player.isPlaying()) player.pause();
             }
             else {
-                Toast.makeText(this, "No songs in queue",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "No songs in queue");
             }
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error pausing queue", e);
@@ -186,12 +183,10 @@ public class MusicService extends Service
             }
             else if (QueueSongs.getInstance().size() == 1) {
                 stopPlaying();
-                Toast.makeText(this, "No songs in queue",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "No songs in queue");
             }
             else if (QueueSongs.getInstance().size() == 0){
-                Toast.makeText(this, "No songs in queue",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "No songs in queue");
             }
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error skipping song", e);
@@ -202,11 +197,35 @@ public class MusicService extends Service
         try {
             Log.d("PLAYER POSITION: ", isPrepared + " " + QueueSongs.getInstance().size() + " " + songHistory.size());
             if (QueueSongs.getInstance().size() == 0 && songHistory.size() == 0){
-                Toast.makeText(this, "No previously played songs",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "No previously played songs");
             }
-            else {
-
+            else if (QueueSongs.getInstance().size() == 0 && songHistory.size() > 0){
+                // Continue automatically if player was playing before
+                Boolean wasPLaying = player.isPlaying();
+                QueueSongs.getInstance().add(0, songHistory.get(0));
+                songHistory.remove(0);
+                if (wasPLaying) playSong();
+            }
+            else if (QueueSongs.getInstance().size() > 0 && songHistory.size() == 0){
+                if (isPrepared && player.getCurrentPosition() > previousSwapTimeInMillis){
+                    player.seekTo(0);
+                }
+                else {
+                    CustomUtilities.showToast(this, "No previously played songs");
+                }
+            }
+            else if (QueueSongs.getInstance().size() > 0 && songHistory.size() > 0){
+                if (isPrepared && player.getCurrentPosition() > previousSwapTimeInMillis){
+                    player.seekTo(0);
+                }
+                else {
+                    // Continue automatically if player was playing before
+                    Boolean wasPLaying = player.isPlaying();
+                    stopPlayingGoToPrevious();
+                    QueueSongs.getInstance().add(0, songHistory.get(0));
+                    songHistory.remove(0);
+                    if (wasPLaying) playSong();
+                }
             }
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Previous song error", e);
@@ -224,6 +243,19 @@ public class MusicService extends Service
             songHistory.add(0, QueueSongs.getInstance().get(0));
             // Remove song from QueueSongs
             QueueSongs.getInstance().remove(0);
+            mediaButtons.invalidate();
+        } catch (Exception e) {
+            Log.e("MUSIC SERVICE: ", "Error stopping song", e);
+        }
+    }
+
+    public void stopPlayingGoToPrevious(){
+        try {
+            MediaButtons.pause = true;
+            if (isPrepared){
+                player.stop();
+                isPrepared = false;
+            }
             mediaButtons.invalidate();
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error stopping song", e);

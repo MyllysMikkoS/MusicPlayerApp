@@ -102,7 +102,7 @@ public class Music extends AppCompatActivity {
                     musicUri,
                     null,
                     MediaStore.Audio.Media.DATA + " like ? ",
-                    new String[]{"%" + path + "%"},
+                    new String[]{"%" + path + "/%"},
                     null);
 
             // Get local music

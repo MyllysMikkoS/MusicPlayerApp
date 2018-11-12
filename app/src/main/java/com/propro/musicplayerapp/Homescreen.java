@@ -153,18 +153,15 @@ public class Homescreen extends AppCompatActivity {
                             startActivity(music);
                         }
                         else {
-                            Toast.makeText(this, "No Wake-Lock Permission",
-                                    Toast.LENGTH_SHORT).show();
+                            CustomUtilities.showToast(this, "No Wake-Lock Permission");
                         }
                     }
                     else {
-                        Toast.makeText(this, "No Write-External-Storage Permission",
-                                Toast.LENGTH_SHORT).show();
+                        CustomUtilities.showToast(this, "No Write-External-Storage Permission");
                     }
                 }
                 else {
-                    Toast.makeText(this, "No Read-External-Storage Permission",
-                            Toast.LENGTH_SHORT).show();
+                    CustomUtilities.showToast(this, "No Read-External-Storage Permission");
                 }
                 return true;
 

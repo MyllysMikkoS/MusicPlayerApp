@@ -88,8 +88,7 @@ public class Settings extends AppCompatActivity {
                 adapter.add(newSource);
             } else {
                 Log.d("PATH ALREADY ADDED: ", path);
-                Toast.makeText(this, "Path already added",
-                        Toast.LENGTH_SHORT).show();
+                CustomUtilities.showToast(this, "Path already added");
             }
 
             // Update listView

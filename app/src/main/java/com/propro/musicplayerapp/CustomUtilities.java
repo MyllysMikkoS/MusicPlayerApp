@@ -9,12 +9,14 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.widget.Toast;
 
 import java.util.List;
 
 public class CustomUtilities {
 
     private static CustomUtilities sSoleInstance;
+    private static Toast mToast;
 
     private CustomUtilities() {
         //Prevent form the reflection api.
@@ -152,5 +154,11 @@ public class CustomUtilities {
      */
     public static boolean isGooglePhotosUri(Uri uri) {
         return "com.google.android.apps.photos.content".equals(uri.getAuthority());
+    }
+
+    public static void showToast(Context context, String message){
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+        mToast.show();
     }
 }
