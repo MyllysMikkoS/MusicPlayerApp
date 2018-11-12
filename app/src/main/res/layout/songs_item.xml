@@ -23,39 +23,19 @@
             android:text="Song name"
             android:textColor="@color/colorPrimaryDark"
             android:textSize="20dp"
-            app:layout_constraintEnd_toStartOf="@+id/playSongImage"
+            app:layout_constraintEnd_toStartOf="@+id/songOptionsImageButton"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
         <ImageView
-            android:id="@+id/playSongImage"
+            android:id="@+id/songOptionsImageButton"
             android:layout_width="60dp"
             android:layout_height="60dp"
             android:padding="15dp"
-            android:contentDescription="add to queue"
-            app:layout_constraintEnd_toStartOf="@id/addSongToQueueImage"
-            app:layout_constraintTop_toTopOf="parent"
-            android:src="@drawable/ic_play"/>
-
-        <ImageView
-            android:id="@+id/addSongToQueueImage"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:padding="15dp"
-            android:contentDescription="add to queue"
-            app:layout_constraintEnd_toStartOf="@id/deleteSongImage"
-            app:layout_constraintTop_toTopOf="parent"
-            android:src="@drawable/ic_add"/>
-
-        <ImageView
-            android:id="@+id/deleteSongImage"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:padding="15dp"
-            android:contentDescription="remove"
+            android:contentDescription="song options"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:src="@drawable/ic_delete"/>
+            android:src="@drawable/ic_more"/>
 
         <View
             android:layout_width="match_parent"

@@ -62,7 +62,10 @@ public class MusicService extends Service
 
     @Override
     public void onCompletion(MediaPlayer mp) {
+        Log.d("MUSIC SERVICE: ", "Song completed");
         isPrepared = false;
+        // If adapter is initialized then remove from queue listview
+        if (Queue.adapter != null) Queue.adapter.remove(QueueSongs.getInstance().get(0));
         QueueSongs.getInstance().remove(0);
 
         // Continue queue if songs left in queue
@@ -75,8 +78,6 @@ public class MusicService extends Service
             Toast.makeText(this, "No songs in queue",
                     Toast.LENGTH_SHORT).show();
         }
-
-        //TODO: DELETE FROM QUEUE LISTVIEW AND UPDATE IF IN QUEUE ACTIVITY WHILE SONG ENDS/IS SKIPPED
     }
 
     @Override
@@ -102,9 +103,12 @@ public class MusicService extends Service
 
     public void playSong(){
         try {
-            if (QueueSongs.getInstance().get(songPosn) != null) {
+            if (QueueSongs.getInstance().size() > 0) {
                 Log.d("METHOD: ", "playSong called");
-                // play a song
+                // set mediabuttons
+                MediaButtons.pause = false;
+                mediaButtons.invalidate();
+                // reset player
                 player.reset();
                 // get song
                 SongInfo song = QueueSongs.getInstance().get(songPosn);
@@ -121,6 +125,8 @@ public class MusicService extends Service
                 player.prepareAsync();
             } else {
                 Log.d("MUSIC SERVICE: ", "No songs in queue");
+                Toast.makeText(getApplicationContext(), "No songs in queue",
+                        Toast.LENGTH_SHORT).show();
             }
         }
         catch (Exception e){
@@ -130,12 +136,17 @@ public class MusicService extends Service
 
     public void continueQueue(){
         try {
-            Log.d("Player is prepared: ", String.valueOf(isPrepared));
-            if (isPrepared) {
-                player.start();
+            if (QueueSongs.getInstance().size() > 0) {
+                Log.d("Player is prepared: ", String.valueOf(isPrepared));
+                if (isPrepared) {
+                    player.start();
+                } else {
+                    playSong();
+                }
             }
             else {
-                playSong();
+                Toast.makeText(this, "No songs in queue",
+                        Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error continuing queue", e);
@@ -144,7 +155,13 @@ public class MusicService extends Service
 
     public void pauseQueue(){
         try {
-            player.pause();
+            if (QueueSongs.getInstance().size() > 0) {
+                player.pause();
+            }
+            else {
+                Toast.makeText(this, "No songs in queue",
+                        Toast.LENGTH_SHORT).show();
+            }
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error pausing queue", e);
         }
@@ -153,13 +170,15 @@ public class MusicService extends Service
     public void skipToNext(){
         try {
             if (QueueSongs.getInstance().size() > 1){
-                player.stop();
-                QueueSongs.getInstance().remove(0);
-                isPrepared = false;
+                stopPlaying();
                 playSong();
             }
-            else {
+            else if (QueueSongs.getInstance().size() == 1) {
                 stopPlaying();
+                Toast.makeText(this, "No songs in queue",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else if (QueueSongs.getInstance().size() == 0){
                 Toast.makeText(this, "No songs in queue",
                         Toast.LENGTH_SHORT).show();
             }

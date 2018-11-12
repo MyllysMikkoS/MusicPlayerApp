@@ -66,19 +66,16 @@ public class Homescreen extends AppCompatActivity {
             public void onSlickClick(int slicePosition, float progress) {
                 String text = String.valueOf(slicePosition) + " " + String.valueOf(progress);
                 songTitle.setText(text);
-                // IF NO SONGS ON QUEUE THEN MEDIABUTTONS WONT TRIGGER ANYTHING
-                if (QueueSongs.getInstance().size() != 0) {
-                    // WHEN PLAY/PAUSE BUTTON IS CLICKED
-                    if (slicePosition == -2 && !MediaButtons.pause) {
-                        musicService.continueQueue();
-                    }
-                    else if (slicePosition == -2 && MediaButtons.pause){
-                        musicService.pauseQueue();
-                    }
+                // WHEN PLAY/PAUSE BUTTON IS CLICKED
+                if (slicePosition == -2 && !MediaButtons.pause) {
+                    musicService.continueQueue();
                 }
-                else {
-                    Toast.makeText(getApplicationContext(), "No songs in queue",
-                            Toast.LENGTH_SHORT).show();
+                else if (slicePosition == -2 && MediaButtons.pause){
+                    musicService.pauseQueue();
+                }
+                // PRESSING SKIP NEXT
+                if (slicePosition == 0){
+                    musicService.skipToNext();
                 }
             }
         });

@@ -3,10 +3,13 @@ package com.propro.musicplayerapp;
 import android.content.Context;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -35,33 +38,43 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
 
         // Lookup view for data population
         TextView tvSongName = (TextView) convertView.findViewById(R.id.songNameTextView);
-        ImageView ivPlay = (ImageView) convertView.findViewById(R.id.playSongImage);
-        ivPlay.setOnClickListener(new View.OnClickListener() {
+        ImageView ivSongOptions = (ImageView) convertView.findViewById(R.id.songOptionsImageButton);
+        ivSongOptions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Set play-event
-                Log.d("Song Play: ", "clicked " + position);
-            }
-        });
-        ImageView ivAdd = (ImageView) convertView.findViewById(R.id.addSongToQueueImage);
-        ivAdd.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Set add-event
-                Log.d("Song Add to queue: ", "clicked " + position);
-                QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
-            }
-        });
-        ImageView ivDelete = (ImageView) convertView.findViewById(R.id.deleteSongImage);
-        ivDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Set delete-event
-                Log.d("Song Delete: ", "clicked " + position);
-                remove(AllSongs.getInstance().get(position));
-                AllSongs.getInstance().remove(position);
-                // TODO: DELETE ALSO FROM PHONE
-                Log.d("ITEMS IN SONGS: ", "i: " + AllSongs.getInstance().size());
+                PopupMenu popup = new PopupMenu(getContext(), v);
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    @Override
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch (item.getItemId()){
+                            case R.id.action_play:
+                                // Set play-event
+                                Log.d("Song Play: ", "clicked " + position);
+                                return true;
+
+                            case R.id.action_add_to_queue:
+                                // Set add-event
+                                Log.d("Song Add to queue: ", "clicked " + position);
+                                QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
+                                return true;
+
+                            case R.id.action_delete:
+                                // Set delete-event
+                                Log.d("Song Delete: ", "clicked " + position);
+                                remove(AllSongs.getInstance().get(position));
+                                AllSongs.getInstance().remove(position);
+                                // TODO: DELETE ALSO FROM PHONE
+                                Log.d("ITEMS IN SONGS: ", "i: " + AllSongs.getInstance().size());
+                                return true;
+
+                            default:
+                                return false;
+                        }
+                    }
+                });
+                MenuInflater inflater = popup.getMenuInflater();
+                inflater.inflate(R.menu.music_item_menu, popup.getMenu());
+                popup.show();
             }
         });
 

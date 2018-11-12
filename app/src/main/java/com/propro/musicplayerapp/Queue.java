@@ -15,7 +15,7 @@ public class Queue extends AppCompatActivity {
     Toolbar toolbar;
     ListView queueListView;
 
-    private static QueueAdapter adapter;
+    public static QueueAdapter adapter;
     ArrayList<SongInfo> queueSongs;
 
     @Override
