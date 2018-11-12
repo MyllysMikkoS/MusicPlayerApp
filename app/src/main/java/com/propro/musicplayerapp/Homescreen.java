@@ -77,6 +77,10 @@ public class Homescreen extends AppCompatActivity {
                 if (slicePosition == 0){
                     musicService.skipToNext();
                 }
+                // PRESSING PREVIOUS SONG
+                if (slicePosition == 3){
+                    musicService.previousSong();
+                }
             }
         });
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(

@@ -13,6 +13,8 @@ import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class MusicService extends Service
         implements MediaPlayer.OnPreparedListener,
         MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
@@ -22,6 +24,7 @@ public class MusicService extends Service
     private final IBinder musicBind = new MusicBinder();
     private boolean isPrepared;
     private MediaButtons mediaButtons;
+    private ArrayList<SongInfo> songHistory;
 
     @Override
     public void onCreate() {
@@ -35,6 +38,8 @@ public class MusicService extends Service
         isPrepared = false;
         // initialize Music Player
         initMusicPlayer();
+        // initialize song history
+        songHistory = new ArrayList<SongInfo>();
     }
 
     public void initMusicPlayer(){
@@ -64,9 +69,13 @@ public class MusicService extends Service
     public void onCompletion(MediaPlayer mp) {
         Log.d("MUSIC SERVICE: ", "Song completed");
         isPrepared = false;
-        // If adapter is initialized then remove from queue listview
-        if (Queue.adapter != null) Queue.adapter.remove(QueueSongs.getInstance().get(0));
-        QueueSongs.getInstance().remove(0);
+        // Add to song history and remove from QueueSongs
+        if (QueueSongs.getInstance().size() > 0) {
+            // If adapter is initialized then remove from queue listview
+            if (Queue.adapter != null) Queue.adapter.remove(QueueSongs.getInstance().get(0));
+            songHistory.add(0, QueueSongs.getInstance().get(0));
+            QueueSongs.getInstance().remove(0);
+        }
 
         // Continue queue if songs left in queue
         if (QueueSongs.getInstance().size() > 0) {
@@ -170,8 +179,10 @@ public class MusicService extends Service
     public void skipToNext(){
         try {
             if (QueueSongs.getInstance().size() > 1){
+                // if player was playing before skip then automatically continue
+                Boolean isPlaying = player.isPlaying();
                 stopPlaying();
-                playSong();
+                if (isPlaying) playSong();
             }
             else if (QueueSongs.getInstance().size() == 1) {
                 stopPlaying();
@@ -187,11 +198,31 @@ public class MusicService extends Service
         }
     }
 
+    public void previousSong(){
+        try {
+            Log.d("PLAYER POSITION: ", isPrepared + " " + QueueSongs.getInstance().size() + " " + songHistory.size());
+            if (QueueSongs.getInstance().size() == 0 && songHistory.size() == 0){
+                Toast.makeText(this, "No previously played songs",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else {
+
+            }
+        } catch (Exception e) {
+            Log.e("MUSIC SERVICE: ", "Previous song error", e);
+        }
+    }
+
     public void stopPlaying(){
         try {
             MediaButtons.pause = true;
-            isPrepared = false;
-            player.stop();
+            if (isPrepared){
+                player.stop();
+                isPrepared = false;
+            }
+            // Add to song history
+            songHistory.add(0, QueueSongs.getInstance().get(0));
+            // Remove song from QueueSongs
             QueueSongs.getInstance().remove(0);
             mediaButtons.invalidate();
         } catch (Exception e) {
