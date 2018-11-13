@@ -48,7 +48,11 @@ public class CustomUtilities {
                 final String type = split[0];
 
                 if ("primary".equalsIgnoreCase(type)) {
-                    return Environment.getExternalStorageDirectory() + "/" + split[1];
+                    try {
+                        return Environment.getExternalStorageDirectory() + "/" + split[1];
+                    } catch (Exception e) {
+                        return Environment.getExternalStorageDirectory() + "";
+                    }
                 }
             }
             // DownloadsProvider
