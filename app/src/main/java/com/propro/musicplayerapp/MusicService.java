@@ -14,6 +14,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 public class MusicService extends Service
         implements MediaPlayer.OnPreparedListener,
@@ -79,6 +80,11 @@ public class MusicService extends Service
                 QueueSongs.getInstance().remove(0);
             }
 
+            // If shuffle is on then swap random song from queue to index 0
+            if (MediaButtons.shuffle && QueueSongs.getInstance().size() > 1){
+                shuffleSong();
+            }
+
             // Continue queue if songs left in queue
             if (QueueSongs.getInstance().size() > 0) {
                 // Play song again if not paused
@@ -94,6 +100,25 @@ public class MusicService extends Service
             isPrepared = false;
             // Play song again if not paused
             if (!MediaButtons.pause) playSong();
+        }
+    }
+
+    public void shuffleSong(){
+        // Get random index from song queue and swap song in that index to be the first one
+        int arraySize = QueueSongs.getInstance().size();
+        int randomIndex = new Random().nextInt(arraySize);
+        Log.d("MUSIC SERVICE: ", "RANDOM INDEX: " + randomIndex + " ARRAYSIZE: " + arraySize);
+        SongInfo swappedSong = QueueSongs.getInstance().get(randomIndex);
+        QueueSongs.getInstance().remove(randomIndex);
+        QueueSongs.getInstance().add(0, swappedSong);
+
+        // After shuffle recreate adapter list
+        if (Queue.adapter != null) {
+            Queue.adapter.clear();
+            QueueSongs songs = QueueSongs.getInstance();
+            for (SongInfo song : songs) {
+                Queue.adapter.add(song);
+            }
         }
     }
 
@@ -188,6 +213,12 @@ public class MusicService extends Service
                 // if player was playing before skip then automatically continue
                 Boolean isPlaying = player.isPlaying();
                 stopPlaying();
+
+                // If shuffle is on then swap random song from queue to index 0
+                if (MediaButtons.shuffle && QueueSongs.getInstance().size() > 1){
+                    shuffleSong();
+                }
+
                 if (isPlaying) playSong();
             }
             else if (QueueSongs.getInstance().size() == 1) {
