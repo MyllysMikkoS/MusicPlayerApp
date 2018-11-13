@@ -68,24 +68,32 @@ public class MusicService extends Service
 
     @Override
     public void onCompletion(MediaPlayer mp) {
-        Log.d("MUSIC SERVICE: ", "Song completed");
-        isPrepared = false;
-        // Add to song history and remove from QueueSongs
-        if (QueueSongs.getInstance().size() > 0) {
-            // If adapter is initialized then remove from queue listview
-            if (Queue.adapter != null) Queue.adapter.remove(QueueSongs.getInstance().get(0));
-            songHistory.add(0, QueueSongs.getInstance().get(0));
-            QueueSongs.getInstance().remove(0);
-        }
+        if (!MediaButtons.repeat) {
+            Log.d("MUSIC SERVICE: ", "Song completed");
+            isPrepared = false;
+            // Add to song history and remove from QueueSongs
+            if (QueueSongs.getInstance().size() > 0) {
+                // If adapter is initialized then remove from queue listview
+                if (Queue.adapter != null) Queue.adapter.remove(QueueSongs.getInstance().get(0));
+                songHistory.add(0, QueueSongs.getInstance().get(0));
+                QueueSongs.getInstance().remove(0);
+            }
 
-        // Continue queue if songs left in queue
-        if (QueueSongs.getInstance().size() > 0) {
-            playSong();
+            // Continue queue if songs left in queue
+            if (QueueSongs.getInstance().size() > 0) {
+                // Play song again if not paused
+                if (!MediaButtons.pause) playSong();
+            } else {
+                MediaButtons.pause = true;
+                mediaButtons.invalidate();
+                CustomUtilities.showToast(this, "No songs in queue");
+            }
         }
         else {
-            MediaButtons.pause = true;
-            mediaButtons.invalidate();
-            CustomUtilities.showToast(this, "No songs in queue");
+            Log.d("MUSIC SERVICE: ", "Player is looping");
+            isPrepared = false;
+            // Play song again if not paused
+            if (!MediaButtons.pause) playSong();
         }
     }
 
@@ -162,6 +170,7 @@ public class MusicService extends Service
 
     public void pauseQueue(){
         try {
+            Log.d("Player: ", "PAUSE CALLED");
             if (QueueSongs.getInstance().size() > 0) {
                 if (player.isPlaying()) player.pause();
             }

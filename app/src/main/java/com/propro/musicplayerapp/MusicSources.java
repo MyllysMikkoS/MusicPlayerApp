@@ -16,6 +16,7 @@ public class MusicSources extends ArrayList<Source> {
         }
 
         add(new Source(Environment.getExternalStorageDirectory() + "/Music/Test"));
+        add(new Source(Environment.getExternalStorageDirectory() + "/Music/Test2"));
     }
 
     // Thread safe implementation
