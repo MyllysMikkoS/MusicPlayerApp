@@ -114,11 +114,14 @@ public class Music extends AppCompatActivity {
                         (android.provider.MediaStore.Audio.Media._ID);
                 int artistColumn = musicCursor.getColumnIndex
                         (android.provider.MediaStore.Audio.Media.ARTIST);
+                int songLength = musicCursor.getColumnIndex
+                        (MediaStore.Audio.Media.DURATION);
                 //add songs to list
                 do {
                     long thisId = musicCursor.getLong(idColumn);
                     String thisTitle = musicCursor.getString(titleColumn);
                     String thisArtist = musicCursor.getString(artistColumn);
+                    int length = musicCursor.getInt(songLength);
 
                     // Add song if not duplicate
                     boolean isDuplicate = false;
@@ -129,7 +132,7 @@ public class Music extends AppCompatActivity {
                     }
                     if (!isDuplicate){
                         Log.d("SONG ID: ", String.valueOf(thisId));
-                        AllSongs.getInstance().add(new SongInfo(thisId, thisTitle, thisArtist));
+                        AllSongs.getInstance().add(new SongInfo(thisId, thisTitle, thisArtist, length));
                     }
                     else {
                         Log.d("SONG ID DUPLICATE: ", String.valueOf(thisId));

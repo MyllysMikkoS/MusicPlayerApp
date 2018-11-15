@@ -7,11 +7,12 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.provider.MediaStore;
 import android.util.Log;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.Random;
@@ -25,8 +26,28 @@ public class MusicService extends Service
     private final IBinder musicBind = new MusicBinder();
     private boolean isPrepared;
     private MediaButtons mediaButtons;
+    private TextView titleView;
+    private TextView artistView;
     private ArrayList<SongInfo> songHistory;
     private int previousSwapTimeInMillis = 1000;
+
+    // flag that should be set true if handler should stop
+    boolean mStopHandler = false;
+    // Handler for runnable
+    Handler mHandler = new Handler();
+    // Progressbar updater runnable
+    Runnable uiUpdateRunnable = new Runnable() {
+        @Override
+        public void run() {
+            if (!mStopHandler) {
+                if (player.isPlaying()) {
+                    Log.d("PROGRESSBAR UPDATE: ", "Called");
+                    updateProgressBar();
+                }
+                mHandler.postDelayed(this, 1000);
+            }
+        }
+    };
 
     @Override
     public void onCreate() {
@@ -101,6 +122,17 @@ public class MusicService extends Service
             // Play song again if not paused
             if (!MediaButtons.pause) playSong();
         }
+
+        try {
+            //Set song info
+            setSongInfo();
+        } catch (Exception e){
+            Log.d("MUSIC SERVICE: ", "SONG INFO ERROR ON COMPLETION: " + e.toString());
+        }
+
+        mStopHandler = true;
+        MediaButtons.progress = 0;
+        updateProgressBar();
     }
 
     public void shuffleSong(){
@@ -129,16 +161,27 @@ public class MusicService extends Service
 
     @Override
     public void onPrepared(MediaPlayer mp) {
+        // Set song info
+        setSongInfo();
+
         // start playback
         if (!isPrepared){
             mp.start();
             isPrepared = true;
+            setSongInfo();
+
+            // Start progressBar animation
+            mStopHandler = false;
+            mHandler.removeCallbacksAndMessages(null);
+            mHandler.post(uiUpdateRunnable);
         }
     }
 
     public class MusicBinder extends Binder {
-        MusicService getService(MediaButtons mediaButtonsView) {
+        MusicService getService(MediaButtons mediaButtonsView, TextView title, TextView artist) {
             mediaButtons = mediaButtonsView;
+            titleView = title;
+            artistView = artist;
             return MusicService.this;
         }
     }
@@ -180,7 +223,12 @@ public class MusicService extends Service
             if (QueueSongs.getInstance().size() > 0) {
                 Log.d("Player is prepared: ", String.valueOf(isPrepared));
                 if (isPrepared) {
-                    if (!player.isPlaying()) player.start();
+                    if (!player.isPlaying()) {
+                        player.start();
+                        mStopHandler = false;
+                        mHandler.removeCallbacksAndMessages(null);
+                        mHandler.post(uiUpdateRunnable);
+                    }
                 } else {
                     playSong();
                 }
@@ -197,11 +245,16 @@ public class MusicService extends Service
         try {
             Log.d("Player: ", "PAUSE CALLED");
             if (QueueSongs.getInstance().size() > 0) {
-                if (player.isPlaying()) player.pause();
+                if (player.isPlaying()) {
+                    player.pause();
+                    mStopHandler = true;
+                }
             }
             else {
                 CustomUtilities.showToast(this, "No songs in queue");
             }
+            //Set song info
+            setSongInfo();
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error pausing queue", e);
         }
@@ -228,6 +281,10 @@ public class MusicService extends Service
             else if (QueueSongs.getInstance().size() == 0){
                 CustomUtilities.showToast(this, "No songs in queue");
             }
+
+            //Set song info
+            setSongInfo();
+            updateProgressBar();
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error skipping song", e);
         }
@@ -249,6 +306,7 @@ public class MusicService extends Service
             else if (QueueSongs.getInstance().size() > 0 && songHistory.size() == 0){
                 if (isPrepared && player.getCurrentPosition() > previousSwapTimeInMillis){
                     player.seekTo(0);
+                    MediaButtons.progress = 0;
                 }
                 else {
                     CustomUtilities.showToast(this, "No previously played songs");
@@ -267,6 +325,9 @@ public class MusicService extends Service
                     if (wasPLaying) playSong();
                 }
             }
+            //Set song info
+            setSongInfo();
+            updateProgressBar();
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Previous song error", e);
         }
@@ -304,5 +365,140 @@ public class MusicService extends Service
 
     public Boolean isPlaying(){
         return player.isPlaying();
+    }
+
+    public void setSongInfo(){
+        if (QueueSongs.getInstance().size() > 0) {
+            int seconds = QueueSongs.getInstance().get(0).Length / 1000;
+
+            // If song length less than minute
+            if (seconds < 0){
+                MediaButtons.songLength = "00:00";
+            }
+            if (seconds < 60 && seconds >= 0){
+                if (seconds < 10) MediaButtons.songLength = "00:0" + seconds;
+                else MediaButtons.songLength = "00:" + seconds;
+            }
+            // Otherwise
+            else {
+                int minutes = seconds / 60;
+                int remainingSeconds = seconds - minutes*60;
+
+                if (minutes < 10 && remainingSeconds < 10){
+                    MediaButtons.songLength = "0" + minutes + ":0" + remainingSeconds;
+                }
+                else if (minutes >= 10 && remainingSeconds < 10){
+                    MediaButtons.songLength = minutes + ":0" + remainingSeconds;
+                }
+                else if (minutes < 10){
+                    MediaButtons.songLength = "0" + minutes + ":" + remainingSeconds;
+                }
+                else {
+                    MediaButtons.songLength = minutes + ":" + remainingSeconds;
+                }
+            }
+
+            // Set current time
+            updateCurrentTime();
+
+            // Set title and artist
+            titleView.setText(QueueSongs.getInstance().get(0).Title);
+            artistView.setText(QueueSongs.getInstance().get(0).Artist);
+
+            mediaButtons.invalidate();
+        }
+        else {
+            // set titles "no song" and times 00:00
+            titleView.setText("NO SONG");
+            artistView.setText("NO ARTIST");
+            MediaButtons.currentTime = "00:00";
+            MediaButtons.songLength = "00:00";
+            mediaButtons.invalidate();
+        }
+    }
+
+    public void progressBarChange(){
+        try {
+            if (QueueSongs.getInstance().size() > 0 && isPrepared) {
+                int newProgress = Math.round(player.getDuration() * (MediaButtons.progress / 100));
+                player.seekTo(newProgress);
+                setSongInfo();
+            }
+            else {
+                MediaButtons.progress = 0;
+                setSongInfo();
+            }
+        }
+        catch (Exception e){
+            Log.d("MUSIC SERVICE: ", "Progress bar error: " + e.toString());
+            player.seekTo(0);
+            MediaButtons.progress = 0;
+            //setSongInfo();
+        }
+    }
+
+    public void updateCurrentTime(){
+        // Set current time
+        try {
+            int currentProgressInSeconds;
+            if (isPrepared) {
+                float curr = player.getCurrentPosition();
+                float divider = 1000;
+                float num = Math.round(curr / divider);
+                currentProgressInSeconds = Math.round(num);
+            }
+            else currentProgressInSeconds = 0;
+
+            if (currentProgressInSeconds < 0){
+                MediaButtons.songLength = "00:00";
+            }
+            if (currentProgressInSeconds < 60 && currentProgressInSeconds >= 0){
+                if (currentProgressInSeconds < 10) MediaButtons.currentTime = "00:0" + currentProgressInSeconds;
+                else MediaButtons.currentTime = "00:" + currentProgressInSeconds;
+            }
+            else {
+                int mins = currentProgressInSeconds / 60;
+                int secs = currentProgressInSeconds - mins*60;
+
+                if (mins < 10 && secs < 10){
+                    MediaButtons.currentTime = "0" + mins + ":0" + secs;
+                }
+                else if (mins >= 10 && secs < 10){
+                    MediaButtons.currentTime = mins + ":0" + secs;
+                }
+                else if (mins < 10){
+                    MediaButtons.currentTime = "0" + mins + ":" + secs;
+                }
+                else {
+                    MediaButtons.currentTime = mins + ":" + secs;
+                }
+            }
+            mediaButtons.invalidate();
+        }
+        catch (Exception e){
+            Log.d("MUSIC SERVICE: ", "No player prepared, default time is 00:00");
+            MediaButtons.currentTime = "00:00";
+            mediaButtons.invalidate();
+        }
+    }
+
+    public void updateProgressBar(){
+        try {
+            if (player.isPlaying()) {
+                float seconds = player.getCurrentPosition();
+                float secondsOverall = player.getDuration();
+                float progress = (seconds / secondsOverall) * 100f;
+                Log.d("OVERALL PROGRESS: ", progress + "% = " + seconds + " seconds, current: " + player.getCurrentPosition());
+                MediaButtons.progress = progress;
+                mediaButtons.invalidate();
+                updateCurrentTime();
+            }
+            else if (!isPrepared){
+                MediaButtons.progress = 0;
+                mediaButtons.invalidate();
+            }
+        } catch (Exception e){
+            Log.d("MUSIC SERVICE: ", "Progressbar update error: " + e.toString());
+        }
     }
 }

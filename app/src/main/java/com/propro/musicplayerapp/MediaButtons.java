@@ -20,7 +20,7 @@ import android.widget.RelativeLayout;
 public class MediaButtons extends View {
 
     // progressBar count 0-100
-    public float progress = 60;
+    public static float progress = 60;
 
     // the number of slice
     private int mSlices = 4;

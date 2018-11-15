@@ -64,8 +64,9 @@ public class Homescreen extends AppCompatActivity {
         mediaButtons.setOnSliceClickListener(new MediaButtons.OnSliceClickListener() {
             @Override
             public void onSlickClick(int slicePosition, float progress) {
-                String text = String.valueOf(slicePosition) + " " + String.valueOf(progress);
-                songTitle.setText(text);
+                //String text = String.valueOf(slicePosition) + " " + String.valueOf(progress);
+                //songTitle.setText(text);
+
                 // WHEN PLAY/PAUSE BUTTON IS CLICKED
                 if (slicePosition == -2 && !MediaButtons.pause) {
                     musicService.continueQueue();
@@ -81,6 +82,9 @@ public class Homescreen extends AppCompatActivity {
                 if (slicePosition == 3){
                     musicService.previousSong();
                 }
+                if (slicePosition == -1){
+                    musicService.progressBarChange();
+                }
             }
         });
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
@@ -95,6 +99,14 @@ public class Homescreen extends AppCompatActivity {
             playIntent = new Intent(this, MusicService.class);
             bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
             startService(playIntent);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (musicService != null) {
+            musicService.setSongInfo();
         }
     }
 
@@ -118,9 +130,16 @@ public class Homescreen extends AppCompatActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             MusicService.MusicBinder binder = (MusicService.MusicBinder)service;
             // get service
-            musicService = binder.getService(mediaButtons);
+            musicService = binder.getService(mediaButtons, songTitle, artistName);
             // pass list
             musicBound = true;
+            // Update all info on activity first time
+            try {
+                musicService.progressBarChange();
+            }
+            catch (Exception e){
+                Log.e("HOMESCREEN: ", "Progress init error", e);
+            }
         }
 
         @Override
