@@ -50,6 +50,9 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                             case R.id.action_play:
                                 // Set play-event
                                 Log.d("Song Play: ", "clicked " + position);
+                                if (Homescreen.musicService.isPlaying()) Homescreen.musicService.stopPlaying();
+                                QueueSongs.getInstance().add(0, AllSongs.getInstance().get(position));
+                                Homescreen.musicService.playSong();
                                 return true;
 
                             case R.id.action_add_to_queue:
