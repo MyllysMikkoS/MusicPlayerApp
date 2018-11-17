@@ -3,6 +3,7 @@
 buildscript {
     
     repositories {
+        mavenCentral()
         google()
         jcenter()
     }
@@ -17,6 +18,11 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenCentral()
+        mavenLocal()
+        maven {
+            url 'http://4thline.org/m2'
+        }
         google()
         jcenter()
     }
