@@ -33,6 +33,7 @@
             android:name=".MusicService"
             android:enabled="true"
             android:exported="true"></service>
+        <service android:name=".upnp.UpnpService" />
     </application>
 
 </manifest>
