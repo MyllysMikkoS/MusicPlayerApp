@@ -5,6 +5,8 @@ import java.util.Collection;
 
 import android.util.Log;
 
+import com.propro.musicplayerapp.Homescreen;
+
 public abstract class DeviceDiscovery {
 
     protected static final String TAG = "DeviceDiscovery";
@@ -78,7 +80,7 @@ public abstract class DeviceDiscovery {
     {
         observerList.add(o);
 
-        final Collection<IUpnpDevice> upnpDevices = Main.upnpServiceController.getServiceListener()
+        final Collection<IUpnpDevice> upnpDevices = Homescreen.upnpServiceController.getServiceListener()
                 .getFilteredDeviceList(getCallableFilter());
         for (IUpnpDevice d : upnpDevices)
             o.addedDevice(d);

@@ -46,20 +46,20 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
         Log.i(TAG, "Creating media server !");
 
-        localService = new AnnotationLocalServiceBinder()
-                .read(ContentDirectoryService.class);
+        //localService = new AnnotationLocalServiceBinder()
+        //        .read(ContentDirectoryService.class);
 
-        localService.setManager(new DefaultServiceManager<ContentDirectoryService>(
-                localService, ContentDirectoryService.class));
+        //localService.setManager(new DefaultServiceManager<ContentDirectoryService>(
+        //        localService, ContentDirectoryService.class));
 
         udn = UDN.valueOf(new UUID(0,10).toString());
         this.localAddress = localAddress;
         this.ctx = ctx;
         createLocalDevice();
 
-        ContentDirectoryService contentDirectoryService = (ContentDirectoryService)localService.getManager().getImplementation();
-        contentDirectoryService.setContext(ctx);
-        contentDirectoryService.setBaseURL(getAddress());
+        //ContentDirectoryService contentDirectoryService = (ContentDirectoryService)localService.getManager().getImplementation();
+        //contentDirectoryService.setContext(ctx);
+        //contentDirectoryService.setBaseURL(getAddress());
     }
 
     public void restart()
@@ -82,21 +82,21 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
         } catch (PackageManager.NameNotFoundException e) {
             Log.e(TAG, "Application version name not found");
         }
-
+        /*
         DeviceDetails details = new DeviceDetails(
                 SettingsActivity.getSettingContentDirectoryName(ctx),
                 new ManufacturerDetails(ctx.getString(R.string.app_name), ctx.getString(R.string.app_url)),
                 new ModelDetails(ctx.getString(R.string.app_name), ctx.getString(R.string.app_url)),
                 ctx.getString(R.string.app_name), version);
 
-        List<ValidationError> l = details.validate();
+        //List<ValidationError> l = details.validate();
         for( ValidationError v : l )
         {
             Log.e(TAG, "Validation pb for property "+ v.getPropertyName());
             Log.e(TAG, "Error is " + v.getMessage());
         }
-
-
+        */
+        DeviceDetails details = new DeviceDetails("myfriendlyname");
         DeviceType type = new UDADeviceType("MediaServer", 1);
 
         localDevice = new LocalDevice(new DeviceIdentity(udn), type, details, localService);
@@ -143,13 +143,14 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
             MediaStore.MediaColumns mediaColumns = null;
             Uri uri = null;
-
+            /*
             if(id.startsWith("/"+ContentDirectoryService.AUDIO_PREFIX))
             {
                 Log.v(TAG, "Ask for audio");
                 uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
                 mediaColumns = new MediaStore.Audio.Media();
             }
+
             else if(id.startsWith("/"+ContentDirectoryService.VIDEO_PREFIX))
             {
                 Log.v(TAG, "Ask for video");
@@ -162,7 +163,7 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
                 uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 mediaColumns = new MediaStore.Images.Media();
             }
-
+            */
             if(uri!=null && mediaColumns!=null)
             {
                 String[] columns = new String[]{mediaColumns.DATA, mediaColumns.MIME_TYPE};

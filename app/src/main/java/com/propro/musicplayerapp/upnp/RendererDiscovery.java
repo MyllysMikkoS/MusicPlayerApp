@@ -1,5 +1,7 @@
 package com.propro.musicplayerapp.upnp;
 
+import com.propro.musicplayerapp.Homescreen;
+
 public class RendererDiscovery extends DeviceDiscovery {
 
         protected static final String TAG = "RendererDeviceFragment";
@@ -18,8 +20,8 @@ public class RendererDiscovery extends DeviceDiscovery {
         @Override
         protected boolean isSelected(IUpnpDevice device)
         {
-            if (Main.upnpServiceController != null && Main.upnpServiceController.getSelectedRenderer() != null)
-                return device.equals(Main.upnpServiceController.getSelectedRenderer());
+            if (Homescreen.upnpServiceController != null && Homescreen.upnpServiceController.getSelectedRenderer() != null)
+                return device.equals(Homescreen.upnpServiceController.getSelectedRenderer());
 
             return false;
         }
@@ -33,14 +35,14 @@ public class RendererDiscovery extends DeviceDiscovery {
         @Override
         protected void select(IUpnpDevice device, boolean force)
         {
-            Main.upnpServiceController.setSelectedRenderer(device, force);
+            Homescreen.upnpServiceController.setSelectedRenderer(device, force);
         }
 
         @Override
         protected void removed(IUpnpDevice d)
         {
-            if (Main.upnpServiceController != null && Main.upnpServiceController.getSelectedRenderer() != null
-                    && d.equals(Main.upnpServiceController.getSelectedRenderer()))
-                Main.upnpServiceController.setSelectedRenderer(null);
+            if (Homescreen.upnpServiceController != null && Homescreen.upnpServiceController.getSelectedRenderer() != null
+                    && d.equals(Homescreen.upnpServiceController.getSelectedRenderer()))
+                Homescreen.upnpServiceController.setSelectedRenderer(null);
         }
 }

@@ -9,6 +9,9 @@ import org.droidupnp.model.cling.didl.ClingDIDLItem;
 import org.droidupnp.model.upnp.IRendererCommand;
 import org.droidupnp.model.upnp.didl.IDIDLItem;
 */
+
+import com.propro.musicplayerapp.Homescreen;
+
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.model.action.ActionInvocation;
 import org.fourthline.cling.model.message.UpnpResponse;
@@ -86,19 +89,19 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
     public static Service getRenderingControlService()
     {
-        if (Main.upnpServiceController.getSelectedRenderer() == null)
+        if (Homescreen.upnpServiceController.getSelectedRenderer() == null)
             return null;
 
-        return ((CDevice) Main.upnpServiceController.getSelectedRenderer()).getDevice().findService(
+        return ((CDevice) Homescreen.upnpServiceController.getSelectedRenderer()).getDevice().findService(
                 new UDAServiceType("RenderingControl"));
     }
 
     public static Service getAVTransportService()
     {
-        if (Main.upnpServiceController.getSelectedRenderer() == null)
+        if (Homescreen.upnpServiceController.getSelectedRenderer() == null)
             return null;
 
-        return ((CDevice) Main.upnpServiceController.getSelectedRenderer()).getDevice().findService(
+        return ((CDevice) Homescreen.upnpServiceController.getSelectedRenderer()).getDevice().findService(
                 new UDAServiceType("AVTransport"));
     }
 

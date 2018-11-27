@@ -18,6 +18,10 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.propro.musicplayerapp.upnp.IUpnpServiceController;
+import com.propro.musicplayerapp.upnp.IFactory;
+import com.propro.musicplayerapp.upnp.Factory;
+
 public class Homescreen extends AppCompatActivity {
 
     // Views
@@ -32,6 +36,10 @@ public class Homescreen extends AppCompatActivity {
     public static MusicService musicService;
     private Intent playIntent;
     private boolean musicBound = false;
+
+    // Controller for upnp
+    public static IUpnpServiceController upnpServiceController = null;
+    public static IFactory factory = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,6 +98,14 @@ public class Homescreen extends AppCompatActivity {
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mediaButtonsRelativeLayout.addView(mediaButtons, params);
+
+        // Use cling factory
+        if (factory == null)
+            factory = new Factory();
+
+        // Upnp service
+        if (upnpServiceController == null)
+            upnpServiceController = factory.createUpnpServiceController(this);
     }
 
     @Override

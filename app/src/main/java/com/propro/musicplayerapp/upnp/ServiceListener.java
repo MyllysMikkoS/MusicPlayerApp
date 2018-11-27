@@ -74,6 +74,7 @@ public class ServiceListener implements IServiceListener
         }
         return deviceList;
     }
+    // OWN COMMENT
 
     protected ServiceConnection serviceConnection = new ServiceConnection() {
 
@@ -84,6 +85,7 @@ public class ServiceListener implements IServiceListener
             upnpService = (AndroidUpnpService) service;
 
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
+            /*
             if(sharedPref.getBoolean(SettingsActivity.CONTENTDIRECTORY_SERVICE, true))
             {
                 try
@@ -121,6 +123,7 @@ public class ServiceListener implements IServiceListener
                 mediaServer.stop();
                 mediaServer = null;
             }
+            */
 
             for (IRegistryListener registryListener : waitingListener)
             {
@@ -138,6 +141,7 @@ public class ServiceListener implements IServiceListener
             upnpService = null;
         }
     };
+
 
     @Override
     public ServiceConnection getServiceConnexion()

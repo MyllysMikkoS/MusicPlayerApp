@@ -5,6 +5,9 @@ import android.content.Context;
 import org.fourthline.cling.android.AndroidUpnpService;
 import org.fourthline.cling.controlpoint.ControlPoint;
 
+import com.propro.musicplayerapp.Homescreen;
+import com.propro.musicplayerapp.upnp.ServiceListener;
+
 public class Factory implements IFactory {
 
     /*
@@ -24,7 +27,7 @@ public class Factory implements IFactory {
     @Override
     public IRendererCommand createRendererCommand(IRendererState rs)
     {
-        AndroidUpnpService aus = ((ServiceListener) Main.upnpServiceController.getServiceListener()).getUpnpService();
+        AndroidUpnpService aus = ((ServiceListener) Homescreen.upnpServiceController.getServiceListener()).getUpnpService();
         ControlPoint cp = null;
         if (aus != null)
             cp = aus.getControlPoint();
