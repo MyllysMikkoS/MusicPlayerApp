@@ -78,6 +78,7 @@ public abstract class DeviceDiscovery {
 
     public void addObserver(IDeviceDiscoveryObserver o)
     {
+        Log.v("DeviceDiscovery", "addObserver");
         observerList.add(o);
 
         final Collection<IUpnpDevice> upnpDevices = Homescreen.upnpServiceController.getServiceListener()
@@ -93,6 +94,7 @@ public abstract class DeviceDiscovery {
 
     public void notifyAdded(IUpnpDevice device)
     {
+        Log.v("DeviceDiscovery", "Notify added");
         for (IDeviceDiscoveryObserver o : observerList)
             o.addedDevice(device);
     }

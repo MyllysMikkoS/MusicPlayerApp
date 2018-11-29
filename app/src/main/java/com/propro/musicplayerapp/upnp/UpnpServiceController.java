@@ -33,7 +33,7 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
     protected UpnpServiceController()
     {
         rendererObservable = new CObservable();
-        contentDirectoryObservable = new CObservable();
+        //contentDirectoryObservable = new CObservable();
 
         //contentDirectoryDiscovery = new ContentDirectoryDiscovery(getServiceListener());
         rendererDiscovery = new RendererDiscovery(getServiceListener());
@@ -70,8 +70,8 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
                 && this.contentDirectory.equals(contentDirectory))
             return;
 
-        this.contentDirectory = contentDirectory;
-        contentDirectoryObservable.notifyAllObservers();
+        //this.contentDirectory = contentDirectory;
+        //contentDirectoryObservable.notifyAllObservers();
     }
 
     @Override

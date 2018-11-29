@@ -17,6 +17,8 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import com.propro.musicplayerapp.Homescreen;
+
 @SuppressWarnings("rawtypes")
 public class ServiceListener implements IServiceListener
 {
@@ -81,11 +83,11 @@ public class ServiceListener implements IServiceListener
         @Override
         public void onServiceConnected(ComponentName className, IBinder service)
         {
-            Log.i(TAG, "Service connexion");
+            Log.i(TAG, "Service connection");
             upnpService = (AndroidUpnpService) service;
-
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
             /*
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
+
             if(sharedPref.getBoolean(SettingsActivity.CONTENTDIRECTORY_SERVICE, true))
             {
                 try
@@ -125,6 +127,38 @@ public class ServiceListener implements IServiceListener
             }
             */
 
+            // taken from commented out section
+            try
+            {
+                // Local content directory
+                if(mediaServer == null)
+                {
+                    mediaServer = new MediaServer(Homescreen.getLocalIpAddress(ctx), ctx);
+                    mediaServer.start();
+                }
+                else
+                {
+                    mediaServer.restart();
+                }
+                upnpService.getRegistry().addDevice(mediaServer.getDevice());
+            }
+            catch (UnknownHostException e1)
+            {
+                Log.e(TAG, "Creating demo device failed");
+                Log.e(TAG, "exception", e1);
+            }
+            catch (ValidationException e2)
+            {
+                Log.e(TAG, "Creating demo device failed");
+                Log.e(TAG, "exception", e2);
+            }
+            catch (IOException e3)
+            {
+                Log.e(TAG, "Starting http server failed");
+                Log.e(TAG, "exception", e3);
+            }
+            // test ends
+
             for (IRegistryListener registryListener : waitingListener)
             {
                 addListenerSafe(registryListener);
@@ -145,7 +179,9 @@ public class ServiceListener implements IServiceListener
 
     @Override
     public ServiceConnection getServiceConnexion()
+
     {
+        Log.v("ServiceListener", "Get service connection !");
         return serviceConnection;
     }
 

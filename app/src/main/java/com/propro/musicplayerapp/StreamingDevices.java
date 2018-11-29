@@ -12,10 +12,11 @@ public class StreamingDevices extends ArrayList<DeviceInfo> {
         if (sSoleInstance != null){
             throw new RuntimeException("Use getInstance() method to get the single instance of this class.");
         }
-
+        /*
         add(new DeviceInfo("Computer-X"));
         add(new DeviceInfo("Speakers"));
         add(new DeviceInfo("Samsung TV"));
+        */
     }
 
     // Thread safe implementation

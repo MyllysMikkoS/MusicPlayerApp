@@ -46,7 +46,7 @@ public class StreamAdapter extends ArrayAdapter<DeviceInfo> {
 
         // Populate the data into the template view using the data object
         try {
-            tvDevice.setText(device.Name);
+            tvDevice.setText(device.toString());
         } catch (NullPointerException e) {
             Log.d("Error: ", e.toString());
         }

@@ -5,6 +5,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -21,6 +23,13 @@ import android.widget.Toast;
 import com.propro.musicplayerapp.upnp.IUpnpServiceController;
 import com.propro.musicplayerapp.upnp.IFactory;
 import com.propro.musicplayerapp.upnp.Factory;
+
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
+import java.util.Locale;
 
 public class Homescreen extends AppCompatActivity {
 
@@ -40,6 +49,7 @@ public class Homescreen extends AppCompatActivity {
     // Controller for upnp
     public static IUpnpServiceController upnpServiceController = null;
     public static IFactory factory = null;
+    private static final String TAG = "HomeScreen";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -124,6 +134,7 @@ public class Homescreen extends AppCompatActivity {
         if (musicService != null) {
             musicService.setSongInfo();
         }
+        upnpServiceController.resume(this);
     }
 
     @Override
@@ -212,5 +223,58 @@ public class Homescreen extends AppCompatActivity {
         }
 
         return(super.onOptionsItemSelected(item));
+    }
+
+    private static InetAddress getLocalIpAdressFromIntf(String intfName)
+    {
+        try
+        {
+            NetworkInterface intf = NetworkInterface.getByName(intfName);
+            if(intf.isUp())
+            {
+                for (Enumeration<InetAddress> enumIpAddr = intf.getInetAddresses(); enumIpAddr.hasMoreElements();)
+                {
+                    InetAddress inetAddress = enumIpAddr.nextElement();
+                    if (!inetAddress.isLoopbackAddress() && inetAddress instanceof Inet4Address)
+                        return inetAddress;
+                }
+            }
+        } catch (Exception e) {
+            Log.w(TAG, "Unable to get ip adress for interface " + intfName);
+        }
+        return null;
+    }
+
+    public static InetAddress getLocalIpAddress(Context ctx) throws UnknownHostException
+    {
+        // ctx.getApplicationContext() was previously only ctx
+        WifiManager wifiManager = (WifiManager) ctx.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        WifiInfo wifiInfo = wifiManager.getConnectionInfo();
+        int ipAddress = wifiInfo.getIpAddress();
+        // also added locale
+        if(ipAddress!=0)
+            return InetAddress.getByName(String.format(Locale.US, "%d.%d.%d.%d",
+                    (ipAddress & 0xff), (ipAddress >> 8 & 0xff),
+                    (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff)));
+
+        Log.d(TAG, "No ip adress available throught wifi manager, try to get it manually");
+
+        InetAddress inetAddress;
+
+        inetAddress = getLocalIpAdressFromIntf("wlan0");
+        if(inetAddress!=null)
+        {
+            Log.d(TAG, "Got an ip for interfarce wlan0");
+            return inetAddress;
+        }
+
+        inetAddress = getLocalIpAdressFromIntf("usb0");
+        if(inetAddress!=null)
+        {
+            Log.d(TAG, "Got an ip for interfarce usb0");
+            return inetAddress;
+        }
+
+        return InetAddress.getByName("0.0.0.0");
     }
 }
