@@ -14,6 +14,8 @@ import java.util.ArrayList;
 
 public class QueueAdapter extends ArrayAdapter<SongInfo> {
 
+    ArrayList<SongInfo> referenceToQueueSongs;
+
     @Override
     public boolean isEnabled(int position) {
         return false;
@@ -21,6 +23,7 @@ public class QueueAdapter extends ArrayAdapter<SongInfo> {
 
     public QueueAdapter(Context context, ArrayList<SongInfo> queueSongs) {
         super(context, 0, queueSongs);
+        referenceToQueueSongs = queueSongs;
     }
 
     @Override
@@ -52,7 +55,9 @@ public class QueueAdapter extends ArrayAdapter<SongInfo> {
                 }
                 else {
                     // Remove song from adapter
-                    remove(QueueSongs.getInstance().get(position));
+                    //remove(QueueSongs.getInstance().get(position));
+                    referenceToQueueSongs.remove(position);
+                    notifyDataSetChanged();
                     QueueSongs.getInstance().remove(position);
                 }
                 Log.d("ITEMS IN QUEUE: ", "i: " + QueueSongs.getInstance().size());

@@ -59,6 +59,7 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 // Set add-event
                                 Log.d("Song Add to queue: ", "clicked " + position);
                                 QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
+                                CustomUtilities.showToast(getContext(), AllSongs.getInstance().get(position).Title + " added to queue");
                                 return true;
 
                             case R.id.action_delete:
