@@ -1,6 +1,7 @@
 package com.propro.musicplayerapp;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -180,6 +181,12 @@ public class CustomUtilities {
     public static void showToast(Context context, String message){
         if (mToast != null) mToast.cancel();
         mToast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
+        mToast.show();
+    }
+
+    public static void showLongToast(Context context, String message){
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(context, message, Toast.LENGTH_LONG);
         mToast.show();
     }
 

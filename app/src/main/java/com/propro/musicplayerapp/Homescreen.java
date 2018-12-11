@@ -90,6 +90,9 @@ public class Homescreen extends AppCompatActivity {
         final RelativeLayout.LayoutParams params = new RelativeLayout.LayoutParams(
                 ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
         mediaButtonsRelativeLayout.addView(mediaButtons, params);
+
+        // Read playlists
+        CustomUtilities.readPlaylists(this);
     }
 
     @Override

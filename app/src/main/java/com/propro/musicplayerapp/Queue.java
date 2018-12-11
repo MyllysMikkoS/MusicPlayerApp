@@ -64,7 +64,7 @@ public class Queue extends AppCompatActivity {
                     adapter.notifyDataSetChanged();
                 }
                 else {
-                    // If player is paused just clear playlist
+                    // If player is paused just clear queue
                     QueueSongs.getInstance().clear();
                     Homescreen.musicService.updateProgressBar();
                     adapter.clear();
@@ -82,28 +82,11 @@ public class Queue extends AppCompatActivity {
 
                     // Set up the input
                     final EditText input = new EditText(Queue.this);
-                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    //input.setInputType(InputType.TYPE_CLASS_TEXT);
                     builder.setView(input);
 
                     // Set up the buttons
-                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-
-                            // Add songs to playlist
-                            ArrayList<Long> songIds = new ArrayList<Long>();
-                            for (SongInfo song : QueueSongs.getInstance()){
-                                songIds.add(song.Id);
-                            }
-                            PlaylistInfo newPlaylist = new PlaylistInfo(input.getText().toString(), songIds);
-                            CustomPlaylists.getInstance().add(newPlaylist);
-
-                            // Update playlists
-                            CustomUtilities.updatePlaylists(getApplicationContext());
-
-                            CustomUtilities.showToast(getApplicationContext(), "Playlist " + input.getText().toString() + " created");
-                        }
-                    });
+                    builder.setPositiveButton("OK", null);
                     builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
@@ -114,7 +97,43 @@ public class Queue extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            builder.show();
+                            final AlertDialog dialog = builder.create();
+                            dialog.show();
+                            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    String name = input.getText().toString();
+                                    boolean alreadyExists = false;
+                                    for (PlaylistInfo pl : CustomPlaylists.getInstance()){
+                                        if (pl.Name.equals(name)) alreadyExists = true;
+                                    }
+
+                                    if (!name.equals("")) {
+                                        if (!alreadyExists) {
+                                            // Add songs to playlist
+                                            ArrayList<Long> songIds = new ArrayList<Long>();
+                                            for (SongInfo song : QueueSongs.getInstance()) {
+                                                songIds.add(song.Id);
+                                            }
+                                            PlaylistInfo newPlaylist = new PlaylistInfo(input.getText().toString(), songIds);
+                                            CustomPlaylists.getInstance().add(newPlaylist);
+
+                                            // Update playlists
+                                            CustomUtilities.updatePlaylists(getApplicationContext());
+
+                                            CustomUtilities.showToast(getApplicationContext(), "Playlist " + input.getText().toString() + " created");
+
+                                            dialog.dismiss();
+                                        }
+                                        else {
+                                            CustomUtilities.showToast(getApplicationContext(), "Playlist with same name already exists");
+                                        }
+                                    }
+                                    else {
+                                        CustomUtilities.showToast(getApplicationContext(), "Playlist name cannot be empty");
+                                    }
+                                }
+                            });
                         }
                     });
                 }

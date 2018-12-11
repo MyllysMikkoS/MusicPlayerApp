@@ -1,6 +1,13 @@
 package com.propro.musicplayerapp;
 
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -12,7 +19,11 @@ import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Objects;
 
 public class SongsAdapter extends ArrayAdapter<SongInfo> {
 
@@ -65,9 +76,49 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                             case R.id.action_delete:
                                 // Set delete-event
                                 Log.d("Song Delete: ", "clicked " + position);
+
+                                // song id
+                                long currSong = AllSongs.getInstance().get(position).Id;
+                                // set uri
+                                Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
+                                String realPath = CustomUtilities.getPath(getContext(), trackUri);
+                                Log.d("SONGS ADAPTER: ","SONG ID: " + currSong + " SONG URI: " + realPath);
+                                try {
+                                    getContext().getContentResolver().delete(trackUri, null, null);
+                                    Log.d("SONGS ADAPTER: ", "SONG: " + trackUri + " DELETED");
+                                } catch (Exception e){
+                                    Log.d("SONGS ADAPTER: ", e.toString());
+                                }
+
+                                // Delete from adapter, AllSongs and queue
+                                if (QueueSongs.getInstance().get(0).Id == currSong){
+                                    boolean wasPlaying = false;
+                                    if (Homescreen.musicService.isPlaying()) {
+                                        wasPlaying = true;
+                                        Homescreen.musicService.stopPlaying();
+                                    }
+
+                                    Iterator<SongInfo> iter = QueueSongs.getInstance().iterator();
+                                    while (iter.hasNext()) {
+                                        SongInfo song = iter.next();
+
+                                        if (song.Id == currSong)
+                                            iter.remove();
+                                    }
+
+                                    if (wasPlaying) Homescreen.musicService.continueQueue();
+                                }
+                                else {
+                                    Iterator<SongInfo> iter = QueueSongs.getInstance().iterator();
+                                    while (iter.hasNext()) {
+                                        SongInfo song = iter.next();
+
+                                        if (song.Id == currSong)
+                                            iter.remove();
+                                    }
+                                }
                                 remove(AllSongs.getInstance().get(position));
                                 AllSongs.getInstance().remove(position);
-                                // TODO: DELETE ALSO FROM PHONE
                                 Log.d("ITEMS IN SONGS: ", "i: " + AllSongs.getInstance().size());
                                 return true;
 

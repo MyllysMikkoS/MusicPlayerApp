@@ -13,6 +13,7 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class PlaylistsAdapter extends ArrayAdapter<PlaylistInfo> {
 
@@ -48,9 +49,69 @@ public class PlaylistsAdapter extends ArrayAdapter<PlaylistInfo> {
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()){
                             case R.id.action_play_playlist:
+                                // Clear old queue
+                                if (Homescreen.musicService.isPlaying()){
+                                    // If player is playing, stop it and clear queue
+                                    Homescreen.musicService.stopPlaying();
+                                    Homescreen.musicService.updateProgressBar();
+                                    QueueSongs.getInstance().clear();
+                                }
+                                else {
+                                    // If player is paused just clear queue
+                                    if (Homescreen.musicService.isPrepared()) {
+                                        try {
+                                            Homescreen.musicService.stopPlaying();
+                                        } catch (Exception e) {
+                                            Log.d("MUSIC SERVICE: ", e.toString());
+                                        }
+                                    }
+                                    QueueSongs.getInstance().clear();
+                                    Homescreen.musicService.updateProgressBar();
+                                }
+                                Log.d("ITEMS IN QUEUE: ", "i: " + QueueSongs.getInstance().size());
+
+                                // Add playlist items into queue
+                                int missingSongs1 = 0;
+                                for (Long id : CustomPlaylists.getInstance().get(position).SongIds){
+                                    boolean songExistsInPaths = false;
+                                    for (SongInfo song : AllSongs.getInstance()){
+                                        if (id == song.Id){
+                                            songExistsInPaths = true;
+                                            QueueSongs.getInstance().add(song);
+                                        }
+                                    }
+                                    if (!songExistsInPaths){
+                                        missingSongs1++;
+                                    }
+                                }
+                                if (missingSongs1 > 0) {
+                                    CustomUtilities.showLongToast(getContext(), "Playlist is missing songs, check your music sources settings");
+                                }
+
+                                // Play queue automatically
+                                Homescreen.musicService.continueQueueAfterPlaylistAdd();
+
                                 return true;
 
                             case R.id.action_add_playlist_to_queue:
+                                // Add playlist items into queue
+                                int missingSongs2 = 0;
+                                for (Long id : CustomPlaylists.getInstance().get(position).SongIds){
+                                    boolean songExistsInPaths = false;
+                                    for (SongInfo song : AllSongs.getInstance()){
+                                        if (id == song.Id){
+                                            songExistsInPaths = true;
+                                            QueueSongs.getInstance().add(song);
+                                        }
+                                    }
+                                    if (!songExistsInPaths){
+                                        missingSongs2++;
+                                    }
+                                }
+                                if (missingSongs2 > 0) {
+                                    CustomUtilities.showLongToast(getContext(), "Playlist is missing " + missingSongs2 + " songs, check your music sources settings");
+                                }
+
                                 return true;
 
                             case R.id.action_delete_playlist:

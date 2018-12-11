@@ -40,12 +40,10 @@ public class Settings extends AppCompatActivity {
         paths = new ArrayList<Source>();
         adapter = new SourcesAdapter(this, paths);
 
-        // TESTING --
         MusicSources sources = MusicSources.getInstance();
         for (Source source : sources) {
             adapter.add(source);
         }
-        // TESTING --
 
         settingsListView.setAdapter(adapter);
 
