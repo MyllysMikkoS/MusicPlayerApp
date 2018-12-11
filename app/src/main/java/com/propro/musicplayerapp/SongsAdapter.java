@@ -77,6 +77,7 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 // Set delete-event
                                 Log.d("Song Delete: ", "clicked " + position);
 
+                                //TODO: DIALOG FOR DELETING
                                 // song id
                                 long currSong = AllSongs.getInstance().get(position).Id;
                                 // set uri
