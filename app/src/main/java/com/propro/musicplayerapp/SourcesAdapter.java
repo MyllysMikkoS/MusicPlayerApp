@@ -44,6 +44,9 @@ public class SourcesAdapter extends ArrayAdapter<Source> {
                 Log.d("Delete: ", "clicked " + position);
                 remove(MusicSources.getInstance().get(position));
                 MusicSources.getInstance().remove(position);
+
+                // Update music sources
+                CustomUtilities.updateMusicSources(getContext());
                 Log.d("ITEMS IN SOURCE LIST: ", "i: " + MusicSources.getInstance().size());
             }
         });

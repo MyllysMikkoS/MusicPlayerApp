@@ -34,7 +34,8 @@ public class QueueAdapter extends ArrayAdapter<SongInfo> {
 
         // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.queue_item, parent, false);
+            if (position == 0) convertView = LayoutInflater.from(getContext()).inflate(R.layout.queue0_item, parent, false);
+            else convertView = LayoutInflater.from(getContext()).inflate(R.layout.queue_item, parent, false);
         }
 
         // Lookup view for data population

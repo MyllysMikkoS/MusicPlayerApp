@@ -281,6 +281,12 @@ public class MusicService extends Service
                 }
             }
             else {
+                try {
+                    player.pause();
+                    mStopHandler = true;
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
                 CustomUtilities.showToast(this, "No songs in queue");
             }
             //Set song info
@@ -309,6 +315,11 @@ public class MusicService extends Service
                 CustomUtilities.showToast(this, "No songs in queue");
             }
             else if (QueueSongs.getInstance().size() == 0){
+                try {
+                    stopPlaying();
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
                 CustomUtilities.showToast(this, "No songs in queue");
             }
 
@@ -370,10 +381,12 @@ public class MusicService extends Service
                 player.stop();
                 isPrepared = false;
             }
-            // Add to song history
-            songHistory.add(0, QueueSongs.getInstance().get(0));
-            // Remove song from QueueSongs
-            QueueSongs.getInstance().remove(0);
+            if (QueueSongs.getInstance().size() > 0) {
+                // Add to song history
+                songHistory.add(0, QueueSongs.getInstance().get(0));
+                // Remove song from QueueSongs
+                QueueSongs.getInstance().remove(0);
+            }
             mediaButtons.invalidate();
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error stopping song", e);

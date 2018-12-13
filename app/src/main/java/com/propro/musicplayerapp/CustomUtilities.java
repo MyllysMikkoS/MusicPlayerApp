@@ -258,4 +258,57 @@ public class CustomUtilities {
             System.out.println(e.getMessage());
         }
     }
+
+    public static void updateMusicSources(Context context){
+        // Create JSONArray for music sources
+        JSONArray sources = new JSONArray();
+        for (Source source : MusicSources.getInstance()){
+            try {
+                // Put path string to json array
+                sources.put(source.path);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        Log.d("SOURCES JSON LOOKS: ", sources.toString());
+
+        // Save sourcesJSON string to shared preferences
+        try {
+            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("sources", sources.toString()).apply();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        Log.d("MUSIC SOURCES: ", MusicSources.getInstance().size() + " music source/sources updated");
+    }
+
+    public static void readMusicSources(Context context){
+        try {
+            if (PreferenceManager.getDefaultSharedPreferences(context).contains("sources")) {
+                String sourcesString = PreferenceManager.getDefaultSharedPreferences(context).getString("sources", "NO SOURCES");
+
+                // Parse sources into MusicSources-singleton
+                try {
+                    JSONArray sources = new JSONArray(sourcesString);
+
+                    // Clear old sources
+                    MusicSources.getInstance().clear();
+
+                    // Get separate sources
+                    for (int i = 0; i < sources.length(); i++) {
+                        String path = sources.getString(i);
+
+                        // Create new source object into MusicSources
+                        MusicSources.getInstance().add(new Source(path));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        Log.d("MUSIC SOURCES: ", MusicSources.getInstance().size() + " music source/sources read");
+    }
 }

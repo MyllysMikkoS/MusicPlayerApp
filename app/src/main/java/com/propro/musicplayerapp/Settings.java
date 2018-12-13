@@ -55,6 +55,9 @@ public class Settings extends AppCompatActivity {
                 performFileSearch();
             }
         });
+
+        // read sources from preferences
+        //CustomUtilities.readMusicSources(this);
     }
 
     public void performFileSearch() {
@@ -84,6 +87,9 @@ public class Settings extends AppCompatActivity {
                 Log.d("ADDING PATH: ", path);
                 MusicSources.getInstance().add(newSource);
                 adapter.add(newSource);
+
+                // Update sources in sharedPreferences
+                CustomUtilities.updateMusicSources(this);
             } else {
                 Log.d("PATH ALREADY ADDED: ", path);
                 CustomUtilities.showToast(this, "Path already added");

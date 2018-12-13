@@ -1,8 +1,10 @@
 package com.propro.musicplayerapp;
 
+import android.app.AlertDialog;
 import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.IBinder;
@@ -14,6 +16,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -93,6 +96,9 @@ public class Homescreen extends AppCompatActivity {
 
         // Read playlists
         CustomUtilities.readPlaylists(this);
+
+        // Read music sources
+        CustomUtilities.readMusicSources(this);
     }
 
     @Override
@@ -110,6 +116,28 @@ public class Homescreen extends AppCompatActivity {
         super.onResume();
         if (musicService != null) {
             musicService.setSongInfo();
+        }
+
+        // if sources are empty, move to settings to add sources
+        if (MusicSources.getInstance().size() == 0){
+            final AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setTitle("No music");
+
+            // Set the test
+            builder.setMessage("There is currently no music in the library. Please set music sources from settings to start listening music.");
+
+            // Set up the buttons
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Intent settings = new Intent(getApplicationContext(), Settings.class);
+                    startActivity(settings);
+                }
+            });
+
+            final AlertDialog dialog = builder.create();
+            dialog.show();
+            dialog.setCanceledOnTouchOutside(false);
         }
     }
 
