@@ -2,9 +2,11 @@ package com.propro.musicplayerapp;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
@@ -56,6 +58,10 @@ public class Music extends AppCompatActivity {
                     songsAdapter.add(song);
                 }
                 musicListView.setAdapter(songsAdapter);
+                songButton.setBackgroundColor(Color.WHITE);
+                songButton.setTextColor(ContextCompat.getColor(getBaseContext(), R.color.button_color));
+                playlistButton.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.button_color));
+                playlistButton.setTextColor(Color.WHITE);
             }
         });
         playlistButton = findViewById(R.id.playlistsButton);
@@ -68,6 +74,10 @@ public class Music extends AppCompatActivity {
                     playlistsAdapter.add(pl);
                 }
                 musicListView.setAdapter(playlistsAdapter);
+                songButton.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.button_color));
+                songButton.setTextColor(Color.WHITE);
+                playlistButton.setBackgroundColor(Color.WHITE);
+                playlistButton.setTextColor(ContextCompat.getColor(getBaseContext(), R.color.button_color));
             }
         });
         musicListView = findViewById(R.id.musicListView);
@@ -77,14 +87,18 @@ public class Music extends AppCompatActivity {
         allSongs = new ArrayList<SongInfo>();
         songsAdapter = new SongsAdapter(this, allSongs);
 
-        // TESTING --
-        CustomPlaylists pls = CustomPlaylists.getInstance();
-        for (PlaylistInfo pl : pls) {
-            playlistsAdapter.add(pl);
+        // Set songs to be viewed by default
+        songsAdapter.clear();
+        AllSongs allSgs = AllSongs.getInstance();
+        for (SongInfo song : allSgs) {
+            songsAdapter.add(song);
         }
-        // TESTING --
+        musicListView.setAdapter(songsAdapter);
+        songButton.setBackgroundColor(Color.WHITE);
+        songButton.setTextColor(ContextCompat.getColor(this, R.color.button_color));
 
-        musicListView.setAdapter(playlistsAdapter);
+        // Update playlists
+        CustomUtilities.readPlaylists(getApplicationContext());
     }
 
     public void getSongList(){

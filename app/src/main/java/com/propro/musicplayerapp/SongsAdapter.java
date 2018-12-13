@@ -1,6 +1,16 @@
 package com.propro.musicplayerapp;
 
+import android.app.AlertDialog;
+import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuInflater;
@@ -8,11 +18,17 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.Objects;
 
 public class SongsAdapter extends ArrayAdapter<SongInfo> {
 
@@ -59,15 +75,7 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 // Set add-event
                                 Log.d("Song Add to queue: ", "clicked " + position);
                                 QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
-                                return true;
-
-                            case R.id.action_delete:
-                                // Set delete-event
-                                Log.d("Song Delete: ", "clicked " + position);
-                                remove(AllSongs.getInstance().get(position));
-                                AllSongs.getInstance().remove(position);
-                                // TODO: DELETE ALSO FROM PHONE
-                                Log.d("ITEMS IN SONGS: ", "i: " + AllSongs.getInstance().size());
+                                CustomUtilities.showToast(getContext(), AllSongs.getInstance().get(position).Title + " added to queue");
                                 return true;
 
                             default:

@@ -1,17 +1,35 @@
 package com.propro.musicplayerapp;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.ContentUris;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 public class CustomUtilities {
 
@@ -164,5 +182,133 @@ public class CustomUtilities {
         if (mToast != null) mToast.cancel();
         mToast = Toast.makeText(context, message, Toast.LENGTH_SHORT);
         mToast.show();
+    }
+
+    public static void showLongToast(Context context, String message){
+        if (mToast != null) mToast.cancel();
+        mToast = Toast.makeText(context, message, Toast.LENGTH_LONG);
+        mToast.show();
+    }
+
+    public static void updatePlaylists(Context context){
+        // Create JSONArray for playlists
+        JSONArray playlists = new JSONArray();
+        for (PlaylistInfo pl : CustomPlaylists.getInstance()){
+            // Create JSONObject for every playlist
+            JSONObject playlist = new JSONObject();
+            JSONArray songIds = new JSONArray();
+            try {
+                // Set name of the playlist
+                playlist.put("Name", pl.Name);
+
+                // Set song ids
+                for (Long id : pl.SongIds){
+                    songIds.put(id);
+                }
+                playlist.put("SongIds", songIds);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // Add playlist JSON to playlists array
+            playlists.put(playlist);
+        }
+
+        Log.d("PLAYLIST JSON LOOKS: ", playlists.toString());
+
+        // Save playlistJSON string to shared preferences
+        try {
+            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("playlists", playlists.toString()).apply();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void readPlaylists(Context context){
+        try {
+            if (PreferenceManager.getDefaultSharedPreferences(context).contains("playlists")) {
+                String playlistString = PreferenceManager.getDefaultSharedPreferences(context).getString("playlists", "NO PLAYLISTS");
+
+                // Parse playlists into PlaylistInfo-objects
+                try {
+                    JSONArray playlists = new JSONArray(playlistString);
+
+                    // Clear old playlists
+                    CustomPlaylists.getInstance().clear();
+
+                    // Get separate playlists
+                    for (int i = 0; i < playlists.length(); i++) {
+                        JSONObject jsonobject = playlists.getJSONObject(i);
+                        String name = jsonobject.getString("Name");
+                        ArrayList<Long> ids = new ArrayList<Long>();
+                        JSONArray songIds = jsonobject.getJSONArray("SongIds");
+                        for (int j = 0; j < songIds.length(); j++) {
+                            Long id = songIds.getLong(j);
+                            ids.add(id);
+                        }
+
+                        // Create new playlists
+                        CustomPlaylists.getInstance().add(new PlaylistInfo(name, ids));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    public static void updateMusicSources(Context context){
+        // Create JSONArray for music sources
+        JSONArray sources = new JSONArray();
+        for (Source source : MusicSources.getInstance()){
+            try {
+                // Put path string to json array
+                sources.put(source.path);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        Log.d("SOURCES JSON LOOKS: ", sources.toString());
+
+        // Save sourcesJSON string to shared preferences
+        try {
+            PreferenceManager.getDefaultSharedPreferences(context).edit().putString("sources", sources.toString()).apply();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        Log.d("MUSIC SOURCES: ", MusicSources.getInstance().size() + " music source/sources updated");
+    }
+
+    public static void readMusicSources(Context context){
+        try {
+            if (PreferenceManager.getDefaultSharedPreferences(context).contains("sources")) {
+                String sourcesString = PreferenceManager.getDefaultSharedPreferences(context).getString("sources", "NO SOURCES");
+
+                // Parse sources into MusicSources-singleton
+                try {
+                    JSONArray sources = new JSONArray(sourcesString);
+
+                    // Clear old sources
+                    MusicSources.getInstance().clear();
+
+                    // Get separate sources
+                    for (int i = 0; i < sources.length(); i++) {
+                        String path = sources.getString(i);
+
+                        // Create new source object into MusicSources
+                        MusicSources.getInstance().add(new Source(path));
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+        Log.d("MUSIC SOURCES: ", MusicSources.getInstance().size() + " music source/sources read");
     }
 }
