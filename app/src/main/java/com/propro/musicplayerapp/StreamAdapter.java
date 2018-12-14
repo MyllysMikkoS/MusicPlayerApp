@@ -40,7 +40,15 @@ public class StreamAdapter extends ArrayAdapter<DeviceInfo> {
             @Override
             public void onClick(View v) {
                 // Set delete-event
+                // select(list.getItem(position).getDevice());
+                StreamingDevices streamingdevice = StreamingDevices.getInstance();
+                //streamingdevice.add()
+                boolean force = false;
+                Homescreen.upnpServiceController.setSelectedRenderer(Stream.devices.get(position).getDevice(), force);
+                Homescreen.localPlayback = false;
                 Log.d("Connect: ", "clicked " + position);
+                Log.d("Connected device: ", Stream.devices.get(position).toString());
+
             }
         });
 

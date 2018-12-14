@@ -9,6 +9,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ListView;
 
 import java.util.ArrayList;
@@ -25,7 +27,7 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
     ListView devicesListView;
 
     private static StreamAdapter adapter;
-    ArrayList<DeviceInfo> devices;
+    public static ArrayList<DeviceInfo> devices;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,6 +44,17 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
         devices = new ArrayList<DeviceInfo>();
         adapter = new StreamAdapter(this, devices);
         devicesListView.setAdapter(adapter);
+        /*
+        devicesListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                //if (adapter.getCount() > 0) {
+                    //adapter.remove(queueSongs.get(position));
+                    //QueueSongs.getInstance().remove(position);
+                //}
+                Log.v("STREAM: ", "i: " + devices.size());
+            }
+        });*/
 
         //------renderer observable test
         // Listen to renderer change
@@ -83,6 +96,12 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
         return true;
     }
 
+
+
+
+
+
+
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
@@ -119,7 +138,7 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
 
     public void startControlPoint()
     {
-        Log.e("startControlPoint", "Called start controp point in stream activity");
+        Log.e("startControlPoint", "Called start controlpoint point in stream activity");
         /*
         if (Main.upnpServiceController.getSelectedRenderer() == null)
         {
@@ -204,10 +223,19 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
         Log.v("Stream", "New device detected : " + device.getDisplayString());
         final DeviceInfo d = new DeviceInfo(device, false);
         try {
-
-            adapter.add(d);
-            devicesListView.setAdapter(adapter);
-            Log.v("Stream", "TRY");
+            int position = adapter.getPosition(d);
+            if (position >= 0)
+            {
+                // Device already in the list, re-set new value at same position
+                adapter.remove(d);
+                adapter.insert(d, position);
+            }
+            else
+            {
+                adapter.add(d);
+            }
+            //devicesListView.setAdapter(adapter);
+            Log.v("Stream", "POSITION" + String.valueOf(position));
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -248,4 +276,6 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
             });
         */
     }
+
+
 }

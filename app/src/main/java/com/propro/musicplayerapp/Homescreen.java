@@ -1,5 +1,6 @@
 package com.propro.musicplayerapp;
 
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Application;
 import android.content.ComponentName;
@@ -23,6 +24,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.propro.musicplayerapp.upnp.ARendererState;
+import com.propro.musicplayerapp.upnp.IRendererCommand;
+import com.propro.musicplayerapp.upnp.IUpnpDevice;
 import com.propro.musicplayerapp.upnp.IUpnpServiceController;
 import com.propro.musicplayerapp.upnp.IFactory;
 import com.propro.musicplayerapp.upnp.Factory;
@@ -33,8 +37,10 @@ import java.net.NetworkInterface;
 import java.net.UnknownHostException;
 import java.util.Enumeration;
 import java.util.Locale;
+import java.util.Observable;
+import java.util.Observer;
 
-public class Homescreen extends AppCompatActivity {
+public class Homescreen extends AppCompatActivity implements Observer {
 
     // Views
     Toolbar toolbar;
@@ -48,11 +54,16 @@ public class Homescreen extends AppCompatActivity {
     public static MusicService musicService;
     private Intent playIntent;
     private boolean musicBound = false;
+    public static boolean localPlayback = true;
 
     // Controller for upnp
     public static IUpnpServiceController upnpServiceController = null;
     public static IFactory factory = null;
     private static final String TAG = "HomeScreen";
+
+    private IUpnpDevice device;
+    private ARendererState rendererState;
+    private IRendererCommand rendererCommand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,21 +101,44 @@ public class Homescreen extends AppCompatActivity {
 
                 // WHEN PLAY/PAUSE BUTTON IS CLICKED
                 if (slicePosition == -2 && !MediaButtons.pause) {
-                    musicService.continueQueue();
+                    if (localPlayback) {
+                        musicService.continueQueue();
+                    }
+                    else{
+                        if (rendererCommand != null)
+                            rendererCommand.commandToggle();
+                    }
+
                 }
                 else if (slicePosition == -2 && MediaButtons.pause){
-                    musicService.pauseQueue();
+
+                    if (localPlayback) {
+                        musicService.pauseQueue();
+                    }
+                    else{
+                        if (rendererCommand != null)
+                            rendererCommand.commandToggle();
+                    }
                 }
                 // PRESSING SKIP NEXT
                 if (slicePosition == 0){
-                    musicService.skipToNext();
+                    if (localPlayback) {
+                        musicService.skipToNext();
+                    }
+
                 }
                 // PRESSING PREVIOUS SONG
                 if (slicePosition == 3){
-                    musicService.previousSong();
+                    if (localPlayback) {
+                        musicService.previousSong();
+                    }
+
                 }
                 if (slicePosition == -1){
-                    musicService.progressBarChange();
+                    if (localPlayback) {
+                        musicService.progressBarChange();
+                    }
+
                 }
             }
         });
@@ -126,23 +160,34 @@ public class Homescreen extends AppCompatActivity {
         if (upnpServiceController == null)
             upnpServiceController = factory.createUpnpServiceController(this);
     }
-    }
+
 
     @Override
     protected void onStart() {
         super.onStart();
-        if (playIntent == null){
-            playIntent = new Intent(this, MusicService.class);
-            bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
-            startService(playIntent);
+        if (localPlayback) {
+            if (playIntent == null){
+                playIntent = new Intent(this, MusicService.class);
+                bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
+                startService(playIntent);
+            }
         }
+
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (musicService != null) {
-            musicService.setSongInfo();
+        if (localPlayback) {
+            if (musicService != null) {
+                musicService.setSongInfo();
+            }
+        }
+        else {
+            startControlPoint();
+
+            if (rendererCommand != null)
+                rendererCommand.resume();
         }
         // added later
         upnpServiceController.resume(this);
@@ -176,8 +221,25 @@ public class Homescreen extends AppCompatActivity {
     }
 
     @Override
+    public void onPause()
+    {
+        Log.v(TAG, "Pause activity");
+        //upnpServiceController.pause();
+        //upnpServiceController.getServiceListener().getServiceConnexion().onServiceDisconnected(null);
+
+        //device = null;
+        //if (rendererCommand != null)
+            //rendererCommand.pause();
+        super.onPause();
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
+
+        // this might not be needed
+        Homescreen.upnpServiceController.delSelectedRendererObserver(this);
+
         if (musicConnection != null){
             unbindService(musicConnection);
         }
@@ -310,4 +372,115 @@ public class Homescreen extends AppCompatActivity {
 
         return InetAddress.getByName("0.0.0.0");
     }
+
+    public void startControlPoint()
+    {
+        if (Homescreen.upnpServiceController.getSelectedRenderer() == null)
+        {
+            if (device != null)
+            {
+                Log.i(TAG, "Current renderer have been removed");
+
+                /*
+                device = null;
+
+                */
+            }
+            return;
+        }
+
+        if (device == null || rendererState == null || rendererCommand == null
+                || !device.equals(Homescreen.upnpServiceController.getSelectedRenderer()))
+        {
+            device = Homescreen.upnpServiceController.getSelectedRenderer();
+
+            Log.i(TAG, "Renderer changed !!! " + Homescreen.upnpServiceController.getSelectedRenderer().getDisplayString());
+
+            rendererState = Homescreen.factory.createRendererState();
+            rendererCommand = Homescreen.factory.createRendererCommand(rendererState);
+
+            if (rendererState == null || rendererCommand == null)
+            {
+                Log.e(TAG, "Fail to create renderer command and/or state");
+                return;
+            }
+
+            rendererCommand.resume();
+
+            rendererState.addObserver(this);
+            rendererCommand.updateFull();
+        }
+        updateRenderer();
+    }
+
+    @Override
+    public void update(Observable observable, Object data)
+    {
+        startControlPoint();
+    }
+
+    public void updateRenderer()
+    {
+        Log.v(TAG, "updateRenderer");
+        /*
+        if (rendererState != null)
+        {
+
+            final Activity a = getActivity();
+            if (a == null)
+                return;
+
+            a.runOnUiThread(new Runnable() {
+                @Override
+                public void run()
+                {
+                    try {
+                        show();
+
+                        TextView title = (TextView) a.findViewById(R.id.title);
+                        TextView artist = (TextView) a.findViewById(R.id.subtitle);
+                        SeekBar seek = (SeekBar) a.findViewById(R.id.progressBar);
+                        SeekBar volume = (SeekBar) a.findViewById(R.id.volume);
+                        TextView durationElapse = (TextView) a.findViewById(R.id.trackDurationElapse);
+
+                        if (title == null || artist == null || seek == null || duration == null || durationElapse == null)
+                            return;
+
+                        if (durationRemaining)
+                            duration.setText(rendererState.getRemainingDuration());
+                        else
+                            duration.setText(rendererState.getDuration());
+
+                        durationElapse.setText(rendererState.getPosition());
+
+                        seek.setProgress(rendererState.getElapsedPercent());
+
+                        title.setText(rendererState.getTitle());
+                        artist.setText(rendererState.getArtist());
+
+                        if (rendererState.getState() == RendererState.State.PLAY) {
+                            play_pauseButton.setImageResource(R.drawable.pause);
+                            play_pauseButton.setContentDescription(getResources().getString(R.string.pause));
+                        } else {
+                            play_pauseButton.setImageResource(R.drawable.play);
+                            play_pauseButton.setContentDescription(getResources().getString(R.string.play));
+                        }
+
+                        if (rendererState.isMute())
+                            volumeButton.setImageResource(R.drawable.volume_mute);
+                        else
+                            volumeButton.setImageResource(R.drawable.volume);
+
+                        volume.setProgress(rendererState.getVolume());
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            Log.v(TAG, rendererState.toString());
+        }*/
+    }
+
 }
