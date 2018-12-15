@@ -1,5 +1,7 @@
 package com.propro.musicplayerapp.server;
 
+import android.util.Log;
+
 import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -659,6 +661,7 @@ public abstract class NanoHTTPD {
                     int read = inputStream.read(buf, 0, BUFSIZE);
                     if(read == -1){
                         // socket was been closed
+                        Log.v("HTTPD", "read -1 socket closed");
                         throw new SocketException();
                     }
                     while (read > 0) {

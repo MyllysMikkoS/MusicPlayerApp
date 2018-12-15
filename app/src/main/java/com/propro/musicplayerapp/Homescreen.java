@@ -63,7 +63,7 @@ public class Homescreen extends AppCompatActivity implements Observer {
 
     private IUpnpDevice device;
     private ARendererState rendererState;
-    private IRendererCommand rendererCommand;
+    public static IRendererCommand rendererCommand;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -170,6 +170,7 @@ public class Homescreen extends AppCompatActivity implements Observer {
                 playIntent = new Intent(this, MusicService.class);
                 bindService(playIntent, musicConnection, Context.BIND_AUTO_CREATE);
                 startService(playIntent);
+
             }
         }
 

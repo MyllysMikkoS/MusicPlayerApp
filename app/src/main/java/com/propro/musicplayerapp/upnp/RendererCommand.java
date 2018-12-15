@@ -271,7 +271,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
             {
                 super.success(invocation);
                 Log.i(TAG, "URI successfully set !");
-                commandPlay();
+                //commandPlay();
             }
 
             @Override

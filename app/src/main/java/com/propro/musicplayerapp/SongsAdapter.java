@@ -24,6 +24,9 @@ import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.propro.musicplayerapp.upnp.ClingDIDLItem;
+import com.propro.musicplayerapp.upnp.IDIDLItem;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -76,6 +79,8 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 Log.d("Song Add to queue: ", "clicked " + position);
                                 QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
                                 CustomUtilities.showToast(getContext(), AllSongs.getInstance().get(position).Title + " added to queue");
+                                ClingDIDLItem cling_item = new ClingDIDLItem(AllSongs.getInstance().get(position).musicTrack);
+                                Homescreen.rendererCommand.launchItem(cling_item);
                                 return true;
 
                             default:

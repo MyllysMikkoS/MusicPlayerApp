@@ -28,6 +28,9 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.propro.musicplayerapp.QueueSongs;
+import com.propro.musicplayerapp.SongInfo;
+
 public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServer
 {
     private final static String TAG = "MediaServer";
@@ -132,6 +135,15 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
     {
         try
         {
+            Log.i(TAG, "Getting current song from queue");
+            SongInfo currSong = QueueSongs.getInstance().get(0);
+            String path = currSong.path;
+            String mime = currSong.mime_type;
+
+            if(path!=null)
+
+                return new ServerObject(path, mime);
+            /*
             // Remove extension
             int dot = id.lastIndexOf('.');
             if (dot >= 0)
@@ -143,7 +155,7 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
             MediaStore.MediaColumns mediaColumns = null;
             Uri uri = null;
-            /*
+
             if(id.startsWith("/"+ContentDirectoryService.AUDIO_PREFIX))
             {
                 Log.v(TAG, "Ask for audio");
@@ -163,7 +175,7 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
                 uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
                 mediaColumns = new MediaStore.Images.Media();
             }
-            */
+
             if(uri!=null && mediaColumns!=null)
             {
                 String[] columns = new String[]{mediaColumns.DATA, mediaColumns.MIME_TYPE};
@@ -180,10 +192,11 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
                     mime = cursor.getString(cursor.getColumnIndexOrThrow(mediaColumns.MIME_TYPE));
                 }
                 cursor.close();
-
+                Log.i(TAG, "PATH OF FILE IS " + path);
                 if(path!=null)
+                    Log.i(TAG, "Prolly never returning");
                     return new ServerObject(path, mime);
-            }
+            }*/
         }
         catch (Exception e)
         {
@@ -215,6 +228,7 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
         {
             try
             {
+                Log.i(TAG, "Trying to get fileobject");
                 ServerObject obj = getFileServerObject(uri);
 
                 Log.i(TAG, "Will serve " + obj.path);

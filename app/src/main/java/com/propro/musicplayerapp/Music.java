@@ -1,5 +1,6 @@
 package com.propro.musicplayerapp;
 
+import android.content.Context;
 import android.content.ContentResolver;
 import android.database.Cursor;
 import android.graphics.Color;
@@ -15,6 +16,16 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ListView;
 
+import com.propro.musicplayerapp.upnp.MediaServer;
+import com.propro.musicplayerapp.Homescreen;
+
+import org.fourthline.cling.support.model.PersonWithRole;
+import org.fourthline.cling.support.model.Res;
+import org.fourthline.cling.support.model.item.MusicTrack;
+import org.seamless.util.MimeType;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -137,6 +148,40 @@ public class Music extends AppCompatActivity {
                     String thisArtist = musicCursor.getString(artistColumn);
                     int length = musicCursor.getInt(songLength);
 
+                    // for MusicTrack
+                    String baseURL = "";
+                    try {
+                        baseURL = Homescreen.getLocalIpAddress(this).getHostAddress() + ":" + 8192;
+                    }
+                    catch (UnknownHostException e1){
+                        Log.e("Music", "exception", e1);
+                    }
+
+                    String track_id = "a-" + musicCursor.getInt(musicCursor.getColumnIndex(MediaStore.Audio.Media._ID));
+                    //String title = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE));
+                    //String creator = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST));
+                    String filePath = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
+                    String mimeType = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.MIME_TYPE));
+                    long size = musicCursor.getLong(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE));
+                    long duration = musicCursor.getLong(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION));
+                    String album = musicCursor.getString(musicCursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM));
+
+                    String extension = "";
+                    int dot = filePath.lastIndexOf('.');
+                    if (dot >= 0)
+                        extension = filePath.substring(dot).toLowerCase();
+
+                    Res res = new Res(new MimeType(mimeType.substring(0, mimeType.indexOf('/')),
+                            mimeType.substring(mimeType.indexOf('/') + 1)), size, "http://" + baseURL + "/" + track_id + extension);
+
+                    res.setDuration(duration / (1000 * 60 * 60) + ":"
+                            + (duration % (1000 * 60 * 60)) / (1000 * 60) + ":"
+                            + (duration % (1000 * 60)) / 1000);
+
+                    //Log.v("Music", "PARAMS" + title + thisTitle.toString() + creator + thisArtist.toString() + baseURL);
+
+                    MusicTrack musicTrack = new MusicTrack(track_id, "", thisTitle, thisArtist, album, new PersonWithRole(thisArtist, "Performer"), res);
+
                     // Add song if not duplicate
                     boolean isDuplicate = false;
                     for (SongInfo song : AllSongs.getInstance()){
@@ -146,7 +191,7 @@ public class Music extends AppCompatActivity {
                     }
                     if (!isDuplicate){
                         Log.d("SONG ID: ", String.valueOf(thisId));
-                        AllSongs.getInstance().add(new SongInfo(thisId, thisTitle, thisArtist, length));
+                        AllSongs.getInstance().add(new SongInfo(thisId, thisTitle, thisArtist, length, musicTrack, filePath, mimeType));
                     }
                     else {
                         Log.d("SONG ID DUPLICATE: ", String.valueOf(thisId));
@@ -164,4 +209,6 @@ public class Music extends AppCompatActivity {
             }
         });
     }
+
+
 }

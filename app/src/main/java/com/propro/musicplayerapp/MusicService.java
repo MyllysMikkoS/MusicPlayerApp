@@ -205,6 +205,7 @@ public class MusicService extends Service
                 long currSong = song.Id;
                 // set uri
                 Uri trackUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, currSong);
+                Log.v("MusicServiceEEE", trackUri.toString());
                 // try playing the song
                 try {
                     player.setDataSource(getApplicationContext(), trackUri);
