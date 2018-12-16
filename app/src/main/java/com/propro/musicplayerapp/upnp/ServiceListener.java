@@ -237,4 +237,8 @@ public class ServiceListener implements IServiceListener
     {
         waitingListener.clear();
     }
+
+    public MediaServer getMediaServer(){
+        return mediaServer;
+    }
 }

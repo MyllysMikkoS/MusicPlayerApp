@@ -19,4 +19,6 @@ public interface IServiceListener {
     public Collection<IUpnpDevice> getFilteredDeviceList(ICallableFilter filter);
 
     public ServiceConnection getServiceConnexion();
+
+    MediaServer getMediaServer();
 }

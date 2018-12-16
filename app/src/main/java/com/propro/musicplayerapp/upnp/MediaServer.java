@@ -2,6 +2,7 @@ package com.propro.musicplayerapp.upnp;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -28,6 +29,7 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import com.propro.musicplayerapp.Homescreen;
 import com.propro.musicplayerapp.QueueSongs;
 import com.propro.musicplayerapp.SongInfo;
 
@@ -39,9 +41,12 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
     private LocalDevice localDevice = null;
     private LocalService localService = null;
     private Context ctx = null;
+    private String setFilePath = "";
+    private static long songId = -1;
 
     private final static int port = 8192;
     private static InetAddress localAddress;
+
 
     public MediaServer(InetAddress localAddress, Context ctx) throws ValidationException
     {
@@ -49,20 +54,11 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
         Log.i(TAG, "Creating media server !");
 
-        //localService = new AnnotationLocalServiceBinder()
-        //        .read(ContentDirectoryService.class);
-
-        //localService.setManager(new DefaultServiceManager<ContentDirectoryService>(
-        //        localService, ContentDirectoryService.class));
-
         udn = UDN.valueOf(new UUID(0,10).toString());
         this.localAddress = localAddress;
         this.ctx = ctx;
         createLocalDevice();
 
-        //ContentDirectoryService contentDirectoryService = (ContentDirectoryService)localService.getManager().getImplementation();
-        //contentDirectoryService.setContext(ctx);
-        //contentDirectoryService.setBaseURL(getAddress());
     }
 
     public void restart()
@@ -79,26 +75,6 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
     public void createLocalDevice() throws ValidationException
     {
-        String version = "";
-        try {
-            version = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            Log.e(TAG, "Application version name not found");
-        }
-        /*
-        DeviceDetails details = new DeviceDetails(
-                SettingsActivity.getSettingContentDirectoryName(ctx),
-                new ManufacturerDetails(ctx.getString(R.string.app_name), ctx.getString(R.string.app_url)),
-                new ModelDetails(ctx.getString(R.string.app_name), ctx.getString(R.string.app_url)),
-                ctx.getString(R.string.app_name), version);
-
-        //List<ValidationError> l = details.validate();
-        for( ValidationError v : l )
-        {
-            Log.e(TAG, "Validation pb for property "+ v.getPropertyName());
-            Log.e(TAG, "Error is " + v.getMessage());
-        }
-        */
         DeviceDetails details = new DeviceDetails("myfriendlyname");
         DeviceType type = new UDADeviceType("MediaServer", 1);
 
@@ -141,62 +117,10 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
             String mime = currSong.mime_type;
 
             if(path!=null)
-
+                setFilePath = path;
+                songId = currSong.Id;
                 return new ServerObject(path, mime);
-            /*
-            // Remove extension
-            int dot = id.lastIndexOf('.');
-            if (dot >= 0)
-                id = id.substring(0,dot);
 
-            // Try to get media id
-            int mediaId = Integer.parseInt(id.substring(3));
-            Log.v(TAG, "media of id is " + mediaId);
-
-            MediaStore.MediaColumns mediaColumns = null;
-            Uri uri = null;
-
-            if(id.startsWith("/"+ContentDirectoryService.AUDIO_PREFIX))
-            {
-                Log.v(TAG, "Ask for audio");
-                uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-                mediaColumns = new MediaStore.Audio.Media();
-            }
-
-            else if(id.startsWith("/"+ContentDirectoryService.VIDEO_PREFIX))
-            {
-                Log.v(TAG, "Ask for video");
-                uri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
-                mediaColumns = new MediaStore.Video.Media();
-            }
-            else if(id.startsWith("/"+ContentDirectoryService.IMAGE_PREFIX))
-            {
-                Log.v(TAG, "Ask for image");
-                uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-                mediaColumns = new MediaStore.Images.Media();
-            }
-
-            if(uri!=null && mediaColumns!=null)
-            {
-                String[] columns = new String[]{mediaColumns.DATA, mediaColumns.MIME_TYPE};
-                String where = mediaColumns._ID + "=?";
-                String[] whereVal = {"" + mediaId};
-
-                String path = null;
-                String mime = null;
-                Cursor cursor = ctx.getContentResolver().query(uri, columns, where, whereVal, null);
-
-                if(cursor.moveToFirst())
-                {
-                    path = cursor.getString(cursor.getColumnIndexOrThrow(mediaColumns.DATA));
-                    mime = cursor.getString(cursor.getColumnIndexOrThrow(mediaColumns.MIME_TYPE));
-                }
-                cursor.close();
-                Log.i(TAG, "PATH OF FILE IS " + path);
-                if(path!=null)
-                    Log.i(TAG, "Prolly never returning");
-                    return new ServerObject(path, mime);
-            }*/
         }
         catch (Exception e)
         {
@@ -241,18 +165,19 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
             if( res != null )
             {
+                /*
                 String version = "1.0";
                 try {
                     version = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionName;
                 } catch (PackageManager.NameNotFoundException e) {
                     Log.e(TAG, "Application version name not found");
                 }
-
+                */
                 // Some DLNA header option
                 res.addHeader("realTimeInfo.dlna.org", "DLNA.ORG_TLAG=*");
                 res.addHeader("contentFeatures.dlna.org", "");
                 res.addHeader("transferMode.dlna.org", "Streaming");
-                res.addHeader("Server", "DLNADOC/1.50 UPnP/1.0 Cling/2.0 DroidUPnP/"+version +" Android/" + Build.VERSION.RELEASE);
+                //res.addHeader("Server", "DLNADOC/1.50 UPnP/1.0 Cling/2.0 DroidUPnP/"+version +" Android/" + Build.VERSION.RELEASE);
             }
 
             return res;
@@ -264,6 +189,10 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
         }
 
         return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "INTERNAL ERROR: unexpected error.");
+    }
+
+    public long getSongId(){
+        return songId;
     }
 }
 

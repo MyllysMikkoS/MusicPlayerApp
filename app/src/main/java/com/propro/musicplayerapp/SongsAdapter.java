@@ -71,7 +71,13 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 Log.d("Song Play: ", "clicked " + position);
                                 if (Homescreen.musicService.isPlaying()) Homescreen.musicService.stopPlaying();
                                 QueueSongs.getInstance().add(0, AllSongs.getInstance().get(position));
-                                Homescreen.musicService.playSong();
+                                if (Homescreen.localPlayback) {
+                                    Homescreen.musicService.playSong();
+                                }
+                                else {
+                                    if (Homescreen.rendererCommand != null)
+                                        Homescreen.rendererCommand.prepareNextSong();
+                                    }
                                 return true;
 
                             case R.id.action_add_to_queue:
@@ -79,8 +85,8 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 Log.d("Song Add to queue: ", "clicked " + position);
                                 QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
                                 CustomUtilities.showToast(getContext(), AllSongs.getInstance().get(position).Title + " added to queue");
-                                ClingDIDLItem cling_item = new ClingDIDLItem(AllSongs.getInstance().get(position).musicTrack);
-                                Homescreen.rendererCommand.launchItem(cling_item);
+                                //ClingDIDLItem cling_item = new ClingDIDLItem(AllSongs.getInstance().get(position).musicTrack);
+                                //Homescreen.rendererCommand.launchItem(cling_item);
                                 return true;
 
                             default:

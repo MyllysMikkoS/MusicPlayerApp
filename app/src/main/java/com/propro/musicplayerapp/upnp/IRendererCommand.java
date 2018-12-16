@@ -37,4 +37,6 @@ public interface IRendererCommand {
 
     // / Full
     public void updateFull();
+
+    public void prepareNextSong();
 }

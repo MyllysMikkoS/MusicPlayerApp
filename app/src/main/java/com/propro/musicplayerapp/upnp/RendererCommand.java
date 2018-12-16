@@ -10,7 +10,9 @@ import org.droidupnp.model.upnp.IRendererCommand;
 import org.droidupnp.model.upnp.didl.IDIDLItem;
 */
 
+import com.propro.musicplayerapp.AllSongs;
 import com.propro.musicplayerapp.Homescreen;
+import com.propro.musicplayerapp.QueueSongs;
 
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.model.action.ActionInvocation;
@@ -271,7 +273,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
             {
                 super.success(invocation);
                 Log.i(TAG, "URI successfully set !");
-                //commandPlay();
+                commandPlay();
             }
 
             @Override
@@ -458,47 +460,6 @@ public class RendererCommand implements Runnable, IRendererCommand {
     @Override
     public void run()
     {
-        // LastChange lastChange = new LastChange(new AVTransportLastChangeParser(),
-        // AVTransportVariable.CurrentTrackMetaData.class);
-
-        // SubscriptionCallback callback = new SubscriptionCallback(getRenderingControlService(), 600) {
-        //
-        // @Override
-        // public void established(GENASubscription sub)
-        // {
-        // Log.e(TAG, "Established: " + sub.getSubscriptionId());
-        // }
-        //
-        // @Override
-        // public void failed(GENASubscription sub, UpnpResponse response, Exception ex, String msg)
-        // {
-        // Log.e(TAG, createDefaultFailureMessage(response, ex));
-        // }
-        //
-        // @Override
-        // public void ended(GENASubscription sub, CancelReason reason, UpnpResponse response)
-        // {
-        // // Reason should be null, or it didn't end regularly
-        // }
-        //
-        // @Override
-        // public void eventReceived(GENASubscription sub)
-        // {
-        // Log.e(TAG, "Event: " + sub.getCurrentSequence().getValue());
-        // Map<String, StateVariableValue> values = sub.getCurrentValues();
-        // StateVariableValue status = values.get("Status");
-        // if (status != null)
-        // Log.e(TAG, "Status is: " + status.toString());
-        // }
-        //
-        // @Override
-        // public void eventsMissed(GENASubscription sub, int numberOfMissedEvents)
-        // {
-        // Log.e(TAG, "Missed events: " + numberOfMissedEvents);
-        // }
-        // };
-
-        // controlPoint.execute(callback);
 
         while (true)
             try
@@ -508,7 +469,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
                 {
                     if (!pause)
                     {
-                        Log.d(TAG, "Update state !");
+                        //Log.d(TAG, "Update state !");
 
                         count++;
 
@@ -523,6 +484,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
                         if ((count % 6) == 0)
                         {
+                            long songid = Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId();
+                            Log.v(TAG, "server song id: " + String.valueOf(songid));
                             updateMediaInfo();
                         }
                     }
@@ -546,6 +509,43 @@ public class RendererCommand implements Runnable, IRendererCommand {
     public void updatePosition()
     {
         // TODO Auto-generated method stub
+
+    }
+
+    @Override
+    public void prepareNextSong()
+    {
+        if (QueueSongs.getInstance().size() > 0) {
+            Log.d("METHOD: ", "prepareNextSong called");
+            // set mediabuttons states
+            //MediaButtons.pause = false;
+            //mediaButtons.invalidate();
+            // reset player
+            //player.reset();
+
+            int position = 0;
+
+            long currentSongId = QueueSongs.getInstance().get(position).Id;
+
+            Log.v("RendererCommand: ", "Comparing items: " + String.valueOf(currentSongId) + " : " + String.valueOf(Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId()));
+            // check if selected song is already served
+            if (Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() == currentSongId){
+                Log.v("RendererCommand: ", "Toggling command");
+                commandToggle();
+            }
+            else {
+                try {
+                    ClingDIDLItem cling_item = new ClingDIDLItem(AllSongs.getInstance().get(position).musicTrack);
+                    Homescreen.rendererCommand.launchItem(cling_item);
+                    Log.v("RendererCommand: ", "Served new item");
+                } catch (Exception e) {
+                    Log.e("RendererCommand: ", "Error slaunching item", e);
+                    // should skip to next and continue queue
+                }
+            }
+
+
+        }
 
     }
 }

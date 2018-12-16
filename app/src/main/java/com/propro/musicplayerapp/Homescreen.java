@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -90,6 +91,33 @@ public class Homescreen extends AppCompatActivity implements Observer {
         artistName = findViewById(R.id.artistNameTextView);
         streamingInfo = findViewById(R.id.streamingTextView);
 
+        streamingInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (localPlayback) {
+                    localPlayback = false;
+
+                    String streamStatus;
+                    if (Homescreen.upnpServiceController.getSelectedRenderer() == null)
+                    {
+                        Log.i(TAG, "No current renderer");
+                        streamStatus = "Streaming: Device not selected";
+                    }
+                    else {
+                        streamStatus = "Streaming: " + upnpServiceController.getSelectedRenderer().getFriendlyName();
+                    }
+                    streamingInfo.setText(streamStatus);
+
+                    startControlPoint();
+                }
+                else{
+                    localPlayback = true;
+                    String streamStatus = "Streaming: off";
+                    streamingInfo.setText(streamStatus);
+                }
+            }
+        });
+
         // Create MediaButtonsWidget
         mediaButtonsRelativeLayout = findViewById(R.id.MediaButtonsRelativeLayout);
         mediaButtons = new MediaButtons(this);
@@ -106,7 +134,9 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     }
                     else{
                         if (rendererCommand != null)
-                            rendererCommand.commandToggle();
+
+                            rendererCommand.prepareNextSong();
+                            //rendererCommand.commandPlay();
                     }
 
                 }
@@ -180,11 +210,17 @@ public class Homescreen extends AppCompatActivity implements Observer {
     protected void onResume() {
         super.onResume();
         if (localPlayback) {
+            String streamStatus = "Streaming: off";
+            streamingInfo.setText(streamStatus);
+
             if (musicService != null) {
                 musicService.setSongInfo();
             }
         }
         else {
+
+            String streamStatus = "Streaming: " + upnpServiceController.getSelectedRenderer().getFriendlyName();
+            streamingInfo.setText(streamStatus);
             startControlPoint();
 
             if (rendererCommand != null)
@@ -229,8 +265,8 @@ public class Homescreen extends AppCompatActivity implements Observer {
         //upnpServiceController.getServiceListener().getServiceConnexion().onServiceDisconnected(null);
 
         //device = null;
-        //if (rendererCommand != null)
-            //rendererCommand.pause();
+        if (rendererCommand != null)
+            rendererCommand.pause();
         super.onPause();
     }
 
@@ -378,15 +414,7 @@ public class Homescreen extends AppCompatActivity implements Observer {
     {
         if (Homescreen.upnpServiceController.getSelectedRenderer() == null)
         {
-            if (device != null)
-            {
-                Log.i(TAG, "Current renderer have been removed");
-
-                /*
-                device = null;
-
-                */
-            }
+            Log.i(TAG, "Current renderer have been removed");
             return;
         }
 
@@ -417,16 +445,42 @@ public class Homescreen extends AppCompatActivity implements Observer {
     @Override
     public void update(Observable observable, Object data)
     {
+        Log.v(TAG, "update method called");
         startControlPoint();
     }
 
     public void updateRenderer()
     {
         Log.v(TAG, "updateRenderer");
-        /*
-        if (rendererState != null)
-        {
 
+        if (rendererState != null)
+
+        {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+
+                //call the invalidate()
+                    if (QueueSongs.getInstance().size() > 0) {
+                        songTitle.setText(QueueSongs.getInstance().get(0).Title);
+                        artistName.setText(QueueSongs.getInstance().get(0).Artist);
+
+                        mediaButtons.invalidate();
+                    }
+                    else {
+                        // set titles "no song" and times 00:00
+                        songTitle.setText("NO SONG");
+                        artistName.setText("NO ARTIST");
+                        MediaButtons.currentTime = "00:00";
+                        MediaButtons.songLength = "00:00";
+                        mediaButtons.invalidate();
+                    }
+                }
+            });
+
+
+
+            /*
             final Activity a = getActivity();
             if (a == null)
                 return;
@@ -435,6 +489,7 @@ public class Homescreen extends AppCompatActivity implements Observer {
                 @Override
                 public void run()
                 {
+
                     try {
                         show();
 
@@ -477,11 +532,13 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+
                 }
             });
 
             Log.v(TAG, rendererState.toString());
-        }*/
+            */
+        }
     }
 
 }
