@@ -76,7 +76,8 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 }
                                 else {
                                     if (Homescreen.rendererCommand != null)
-                                        Homescreen.rendererCommand.prepareNextSong();
+
+                                        Homescreen.rendererCommand.prepareNextSong(false);
                                     }
                                 return true;
 

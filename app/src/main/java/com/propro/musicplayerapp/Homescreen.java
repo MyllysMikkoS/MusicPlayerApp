@@ -114,6 +114,8 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     localPlayback = true;
                     String streamStatus = "Streaming: off";
                     streamingInfo.setText(streamStatus);
+                    if (rendererCommand != null)
+                        rendererCommand.pause();
                 }
             }
         });
@@ -135,7 +137,7 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     else{
                         if (rendererCommand != null)
 
-                            rendererCommand.prepareNextSong();
+                            rendererCommand.prepareNextSong(false);
                             //rendererCommand.commandPlay();
                     }
 
@@ -155,6 +157,9 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     if (localPlayback) {
                         musicService.skipToNext();
                     }
+                    else {
+                        rendererCommand.skipToNextSong();
+                    }
 
                 }
                 // PRESSING PREVIOUS SONG
@@ -167,6 +172,9 @@ public class Homescreen extends AppCompatActivity implements Observer {
                 if (slicePosition == -1){
                     if (localPlayback) {
                         musicService.progressBarChange();
+                    }
+                    else{
+                        CustomUtilities.showToast(getApplicationContext(), "Stream mode doesn't support changing progress");
                     }
 
                 }
@@ -221,6 +229,8 @@ public class Homescreen extends AppCompatActivity implements Observer {
 
             String streamStatus = "Streaming: " + upnpServiceController.getSelectedRenderer().getFriendlyName();
             streamingInfo.setText(streamStatus);
+            if (rendererCommand != null)
+                rendererCommand.resume();
             startControlPoint();
 
             if (rendererCommand != null)
@@ -274,13 +284,19 @@ public class Homescreen extends AppCompatActivity implements Observer {
     protected void onDestroy() {
         super.onDestroy();
 
-        // this might not be needed
+        if (rendererCommand != null){
+            rendererCommand.commandPause();
+            rendererCommand.commandStop();
+        }
+        upnpServiceController.pause();
+        //upnpServiceController.getServiceListener().getServiceConnexion().onServiceDisconnected(null);
         Homescreen.upnpServiceController.delSelectedRendererObserver(this);
 
         if (musicConnection != null){
             unbindService(musicConnection);
         }
         Log.d("ONDESTROY: ", "CALLED");
+        //super.onDestroy();
     }
 
     // connect to MusicService
@@ -462,10 +478,45 @@ public class Homescreen extends AppCompatActivity implements Observer {
 
                 //call the invalidate()
                     if (QueueSongs.getInstance().size() > 0) {
+                        //------------
+
+                        int seconds = QueueSongs.getInstance().get(0).Length / 1000;
+
+                        // If song length less than minute
+                        if (seconds < 0){
+                            MediaButtons.songLength = "00:00";
+                        }
+                        if (seconds < 60 && seconds >= 0){
+                            if (seconds < 10) MediaButtons.songLength = "00:0" + seconds;
+                            else MediaButtons.songLength = "00:" + seconds;
+                        }
+                        // Otherwise
+                        else {
+                            int minutes = seconds / 60;
+                            int remainingSeconds = seconds - minutes*60;
+
+                            if (minutes < 10 && remainingSeconds < 10){
+                                MediaButtons.songLength = "0" + minutes + ":0" + remainingSeconds;
+                            }
+                            else if (minutes >= 10 && remainingSeconds < 10){
+                                MediaButtons.songLength = minutes + ":0" + remainingSeconds;
+                            }
+                            else if (minutes < 10){
+                                MediaButtons.songLength = "0" + minutes + ":" + remainingSeconds;
+                            }
+                            else {
+                                MediaButtons.songLength = minutes + ":" + remainingSeconds;
+                            }
+                        }
+
+                        //--------
+                        updateCurrentTime();
                         songTitle.setText(QueueSongs.getInstance().get(0).Title);
                         artistName.setText(QueueSongs.getInstance().get(0).Artist);
 
                         mediaButtons.invalidate();
+
+
                     }
                     else {
                         // set titles "no song" and times 00:00
@@ -477,68 +528,59 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     }
                 }
             });
-
-
-
-            /*
-            final Activity a = getActivity();
-            if (a == null)
-                return;
-
-            a.runOnUiThread(new Runnable() {
-                @Override
-                public void run()
-                {
-
-                    try {
-                        show();
-
-                        TextView title = (TextView) a.findViewById(R.id.title);
-                        TextView artist = (TextView) a.findViewById(R.id.subtitle);
-                        SeekBar seek = (SeekBar) a.findViewById(R.id.progressBar);
-                        SeekBar volume = (SeekBar) a.findViewById(R.id.volume);
-                        TextView durationElapse = (TextView) a.findViewById(R.id.trackDurationElapse);
-
-                        if (title == null || artist == null || seek == null || duration == null || durationElapse == null)
-                            return;
-
-                        if (durationRemaining)
-                            duration.setText(rendererState.getRemainingDuration());
-                        else
-                            duration.setText(rendererState.getDuration());
-
-                        durationElapse.setText(rendererState.getPosition());
-
-                        seek.setProgress(rendererState.getElapsedPercent());
-
-                        title.setText(rendererState.getTitle());
-                        artist.setText(rendererState.getArtist());
-
-                        if (rendererState.getState() == RendererState.State.PLAY) {
-                            play_pauseButton.setImageResource(R.drawable.pause);
-                            play_pauseButton.setContentDescription(getResources().getString(R.string.pause));
-                        } else {
-                            play_pauseButton.setImageResource(R.drawable.play);
-                            play_pauseButton.setContentDescription(getResources().getString(R.string.play));
-                        }
-
-                        if (rendererState.isMute())
-                            volumeButton.setImageResource(R.drawable.volume_mute);
-                        else
-                            volumeButton.setImageResource(R.drawable.volume);
-
-                        volume.setProgress(rendererState.getVolume());
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                }
-            });
-
             Log.v(TAG, rendererState.toString());
-            */
         }
     }
+
+    public void updateCurrentTime(){
+        // Set current time
+        try {
+            //int currentProgressInSeconds;
+            int currentProgressInSeconds = (int)rendererState.getElapsedSeconds();
+            int durationSeconds = (int)rendererState.getDurationSeconds();
+            //Log.d(TAG, "elapsed time " + String.valueOf(currentProgressInSeconds) + " duration " + String.valueOf(durationSeconds));
+            // should
+            /*
+            if (elapsedSeconds < durationSeconds) {
+                //float curr = player.getCurrentPosition();
+                float divider = 1000;
+                float num = Math.round(elapsedSeconds / divider);
+                currentProgressInSeconds = Math.round(num);
+            }
+            else currentProgressInSeconds = 0;
+            */
+            if (currentProgressInSeconds < 0){
+                MediaButtons.songLength = "00:00";
+            }
+            if (currentProgressInSeconds < 60 && currentProgressInSeconds >= 0){
+                if (currentProgressInSeconds < 10) MediaButtons.currentTime = "00:0" + currentProgressInSeconds;
+                else MediaButtons.currentTime = "00:" + currentProgressInSeconds;
+            }
+            else {
+                int mins = currentProgressInSeconds / 60;
+                int secs = currentProgressInSeconds - mins*60;
+
+                if (mins < 10 && secs < 10){
+                    MediaButtons.currentTime = "0" + mins + ":0" + secs;
+                }
+                else if (mins >= 10 && secs < 10){
+                    MediaButtons.currentTime = mins + ":0" + secs;
+                }
+                else if (mins < 10){
+                    MediaButtons.currentTime = "0" + mins + ":" + secs;
+                }
+                else {
+                    MediaButtons.currentTime = mins + ":" + secs;
+                }
+            }
+            //mediaButtons.invalidate();
+        }
+        catch (Exception e){
+            Log.d("MUSIC SERVICE: ", "No player prepared, default time is 00:00");
+            MediaButtons.currentTime = "00:00";
+            //mediaButtons.invalidate();
+        }
+    }
+    /**/
 
 }

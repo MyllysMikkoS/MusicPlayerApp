@@ -11,8 +11,12 @@ import org.droidupnp.model.upnp.didl.IDIDLItem;
 */
 
 import com.propro.musicplayerapp.AllSongs;
+import com.propro.musicplayerapp.CustomUtilities;
 import com.propro.musicplayerapp.Homescreen;
+import com.propro.musicplayerapp.MediaButtons;
+import com.propro.musicplayerapp.Queue;
 import com.propro.musicplayerapp.QueueSongs;
+import com.propro.musicplayerapp.SongInfo;
 
 import org.fourthline.cling.controlpoint.ControlPoint;
 import org.fourthline.cling.model.action.ActionInvocation;
@@ -44,6 +48,9 @@ import org.fourthline.cling.support.renderingcontrol.callback.SetVolume;
 
 import android.util.Log;
 
+import java.util.ArrayList;
+import java.util.Random;
+
 @SuppressWarnings("rawtypes")
 public class RendererCommand implements Runnable, IRendererCommand {
 
@@ -52,6 +59,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
     private final RendererState rendererState;
     private final ControlPoint controlPoint;
 
+    private ArrayList<SongInfo> songHistory;
+
     public Thread thread;
     boolean pause = false;
 
@@ -59,6 +68,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
     {
         this.rendererState = rendererState;
         this.controlPoint = controlPoint;
+
+        this.songHistory = new ArrayList<SongInfo>();
 
         thread = new Thread(this);
         pause = true;
@@ -469,11 +480,18 @@ public class RendererCommand implements Runnable, IRendererCommand {
                 {
                     if (!pause)
                     {
-                        //Log.d(TAG, "Update state !");
+                        Log.d(TAG, "Update state !");
 
                         count++;
 
                         updatePositionInfo();
+
+                        //read state
+                        if (rendererState.getState() == RendererState.State.STOP && Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() != -1){
+                            Log.d(TAG, "Completing song");
+                            completeSong();
+                            rendererState.setState(RendererState.State.PLAY);
+                        }
 
                         if ((count % 3) == 0)
                         {
@@ -484,8 +502,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
                         if ((count % 6) == 0)
                         {
-                            long songid = Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId();
-                            Log.v(TAG, "server song id: " + String.valueOf(songid));
+                            //long songid = Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId();
+                            //Log.v(TAG, "server song id: " + String.valueOf(songid));
                             updateMediaInfo();
                         }
                     }
@@ -513,15 +531,13 @@ public class RendererCommand implements Runnable, IRendererCommand {
     }
 
     @Override
-    public void prepareNextSong()
+    public void prepareNextSong(boolean forceStartAgain)
     {
         if (QueueSongs.getInstance().size() > 0) {
             Log.d("METHOD: ", "prepareNextSong called");
             // set mediabuttons states
-            //MediaButtons.pause = false;
+            MediaButtons.pause = false;
             //mediaButtons.invalidate();
-            // reset player
-            //player.reset();
 
             int position = 0;
 
@@ -529,7 +545,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
             Log.v("RendererCommand: ", "Comparing items: " + String.valueOf(currentSongId) + " : " + String.valueOf(Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId()));
             // check if selected song is already served
-            if (Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() == currentSongId){
+            if (Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() == currentSongId && !forceStartAgain){
                 Log.v("RendererCommand: ", "Toggling command");
                 commandToggle();
             }
@@ -547,5 +563,191 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
         }
 
+    }
+
+    public void skipToNextSong(){
+        try {
+            if (QueueSongs.getInstance().size() > 1){
+                // if player was playing before skip then automatically continue
+                boolean is_playing = false;
+                RendererState.State state = rendererState.getState();
+                if (state == RendererState.State.PLAY){
+                    is_playing = true;
+                    //commandPause();
+                    stopPlaying();
+                    Log.v("RendererCommand: ", "Stopped");
+                }
+
+                // If shuffle is on then swap random song from queue to index 0
+                if (MediaButtons.shuffle && QueueSongs.getInstance().size() > 1){
+                    Log.v("RendererCommand: ", "Shuffling");
+                    shuffleSong();
+                }
+
+                if (is_playing) {
+                    Log.v("RendererCommand: ", "Preparing next song");
+                    prepareNextSong(true);
+                }
+            }
+            else if (QueueSongs.getInstance().size() == 1) {
+                Log.v("RendererCommand: ", "Stopping when only song");
+                stopPlaying();
+                //CustomUtilities.showToast(this, "No songs in queue");
+            }
+            else if (QueueSongs.getInstance().size() == 0){
+                try {Log.v("RendererCommand: ", "Stopping when no songs");
+                    stopPlaying();
+                } catch (Exception e){
+                    e.printStackTrace();
+                }
+                //CustomUtilities.showToast(Homescreen.getContext(), "No songs in queue");
+            }
+
+            //Set song info
+            //setSongInfo();
+            //updateProgressBar();
+        } catch (Exception e) {
+            Log.e("MUSIC SERVICE: ", "Error skipping song", e);
+        }
+    }
+    /*
+    public void toPreviousSong() {
+        try {
+            //Log.d("PLAYER POSITION: ", isPrepared + " " + QueueSongs.getInstance().size() + " " + songHistory.size());
+            boolean isPrepared = false;
+            if (Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() != -1) {
+                isPrepared = true;
+            }
+            if (QueueSongs.getInstance().size() == 0 && songHistory.size() == 0){
+                //CustomUtilities.showToast(this, "No previously played songs");
+                Log.d(TAG, "No previously played songs");
+            }
+            else if (QueueSongs.getInstance().size() == 0 && songHistory.size() > 0){
+                // Continue automatically if player was playing before
+                Boolean wasPLaying = player.isPlaying();
+                QueueSongs.getInstance().add(0, songHistory.get(0));
+                songHistory.remove(0);
+                if (wasPLaying) playSong();
+            }
+            else if (QueueSongs.getInstance().size() > 0 && songHistory.size() == 0){
+                // same song again
+                //rendererState.getElapsedSeconds()
+                if (isPrepared && rendererState.getElapsedSeconds() > 1){
+                    player.seekTo(0);
+                    MediaButtons.progress = 0;
+                }
+                else {
+                    //CustomUtilities.showToast(this, "No previously played songs");
+                    Log.d(TAG, "No previously played songs");
+                }
+            }
+            else if (QueueSongs.getInstance().size() > 0 && songHistory.size() > 0){
+                if (isPrepared && player.getCurrentPosition() > previousSwapTimeInMillis){
+                    player.seekTo(0);
+                }
+                else {
+                    // Continue automatically if player was playing before
+                    Boolean wasPLaying = player.isPlaying();
+                    stopPlayingGoToPrevious();
+                    QueueSongs.getInstance().add(0, songHistory.get(0));
+                    songHistory.remove(0);
+                    if (wasPLaying) playSong();
+                }
+            }
+            //Set song info
+            setSongInfo();
+            updateProgressBar();
+        } catch (Exception e) {
+            Log.e("MUSIC SERVICE: ", "Previous song error", e);
+        }
+    }
+    */
+    private void shuffleSong(){
+        // Get random index from song queue and swap song in that index to be the first one
+        int arraySize = QueueSongs.getInstance().size();
+        int randomIndex = new Random().nextInt(arraySize);
+        Log.d("MUSIC SERVICE: ", "RANDOM INDEX: " + randomIndex + " ARRAYSIZE: " + arraySize);
+        SongInfo swappedSong = QueueSongs.getInstance().get(randomIndex);
+        QueueSongs.getInstance().remove(randomIndex);
+        QueueSongs.getInstance().add(0, swappedSong);
+
+        // After shuffle recreate adapter list
+        if (Queue.adapter != null) {
+            Queue.adapter.clear();
+            QueueSongs songs = QueueSongs.getInstance();
+            for (SongInfo song : songs) {
+                Queue.adapter.add(song);
+            }
+        }
+    }
+
+    private void stopPlaying(){
+        try {
+            MediaButtons.pause = true;
+            RendererState.State state = rendererState.getState();
+            if (state == RendererState.State.PLAY){
+                commandPause();
+            }
+            if (QueueSongs.getInstance().size() > 0) {
+                // Add to song history
+                songHistory.add(0, QueueSongs.getInstance().get(0));
+                // Remove song from QueueSongs
+                QueueSongs.getInstance().remove(0);
+            }
+
+        } catch (Exception e) {
+            Log.e("MUSIC SERVICE: ", "Error stopping song", e);
+        }
+    }
+
+    private void completeSong(){
+        boolean isPrepared = false;
+        if (Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() != -1) {
+            isPrepared = true;
+        }
+        if (!MediaButtons.repeat) {
+            Log.d("MUSIC SERVICE: ", "Song completed");
+
+            // Add to song history and remove from QueueSongs
+            if (QueueSongs.getInstance().size() > 0) {
+                // If adapter is initialized then remove from queue listview
+                if (Queue.adapter != null) Queue.adapter.remove(QueueSongs.getInstance().get(0));
+                songHistory.add(0, QueueSongs.getInstance().get(0));
+                QueueSongs.getInstance().remove(0);
+            }
+
+            // If shuffle is on then swap random song from queue to index 0
+            if (MediaButtons.shuffle && QueueSongs.getInstance().size() > 1){
+                shuffleSong();
+            }
+
+            // Continue queue if songs left in queue
+            if (QueueSongs.getInstance().size() > 0) {
+                // Play song again if not paused
+                if (!MediaButtons.pause) prepareNextSong(true);
+            } else {
+                MediaButtons.pause = true;
+                //mediaButtons.invalidate();
+                //CustomUtilities.showToast(this, "No songs in queue");
+            }
+        }
+        else {
+            Log.d("MUSIC SERVICE: ", "Player is looping");
+            isPrepared = false;
+            // Play song again if not paused
+            if (!MediaButtons.pause) prepareNextSong(true);
+        }
+        /*
+        try {
+            //Set song info
+            //setSongInfo();
+        } catch (Exception e){
+            Log.d("MUSIC SERVICE: ", "SONG INFO ERROR ON COMPLETION: " + e.toString());
+        }
+
+        //mStopHandler = true;
+        //MediaButtons.progress = 0;
+        //updateProgressBar();
+        */
     }
 }

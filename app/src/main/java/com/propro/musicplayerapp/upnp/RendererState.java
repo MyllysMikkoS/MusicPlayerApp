@@ -190,6 +190,12 @@ public class RendererState extends ARendererState {
         return positionInfo.getTrackDurationSeconds();
     }
 
+    @Override
+    public long getElapsedSeconds()
+    {
+        return positionInfo.getTrackElapsedSeconds();
+    }
+
     public void resetTrackInfo()
     {
         positionInfo = new PositionInfo();

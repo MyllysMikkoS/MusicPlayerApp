@@ -38,5 +38,9 @@ public interface IRendererCommand {
     // / Full
     public void updateFull();
 
-    public void prepareNextSong();
+    public void prepareNextSong(boolean forceStartAgain);
+
+    public void skipToNextSong();
+
+    //public void toPreviousSong();
 }

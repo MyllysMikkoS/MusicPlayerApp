@@ -30,6 +30,8 @@ public interface IRendererState {
 
     public long getDurationSeconds();
 
+    public long getElapsedSeconds();
+
     public String getTitle();
 
     public String getArtist();
