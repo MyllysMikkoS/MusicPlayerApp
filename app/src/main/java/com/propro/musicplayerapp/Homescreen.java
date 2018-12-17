@@ -1,8 +1,6 @@
 package com.propro.musicplayerapp;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.Application;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,10 +18,8 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.propro.musicplayerapp.upnp.ARendererState;
 import com.propro.musicplayerapp.upnp.IRendererCommand;
@@ -265,10 +261,7 @@ public class Homescreen extends AppCompatActivity implements Observer {
     public void onPause()
     {
         Log.v(TAG, "Pause activity");
-        //upnpServiceController.pause();
-        //upnpServiceController.getServiceListener().getServiceConnexion().onServiceDisconnected(null);
 
-        //device = null;
         if (rendererCommand != null)
             rendererCommand.pause();
         super.onPause();
@@ -529,20 +522,8 @@ public class Homescreen extends AppCompatActivity implements Observer {
     public void updateCurrentTime(){
         // Set current time
         try {
-            //int currentProgressInSeconds;
             int currentProgressInSeconds = (int)rendererState.getElapsedSeconds();
-            int durationSeconds = (int)rendererState.getDurationSeconds();
-            //Log.d(TAG, "elapsed time " + String.valueOf(currentProgressInSeconds) + " duration " + String.valueOf(durationSeconds));
-            // should
-            /*
-            if (elapsedSeconds < durationSeconds) {
-                //float curr = player.getCurrentPosition();
-                float divider = 1000;
-                float num = Math.round(elapsedSeconds / divider);
-                currentProgressInSeconds = Math.round(num);
-            }
-            else currentProgressInSeconds = 0;
-            */
+
             if (currentProgressInSeconds < 0){
                 MediaButtons.songLength = "00:00";
             }
@@ -575,6 +556,4 @@ public class Homescreen extends AppCompatActivity implements Observer {
             //mediaButtons.invalidate();
         }
     }
-    /**/
-
 }

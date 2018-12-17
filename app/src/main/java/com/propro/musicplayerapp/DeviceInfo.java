@@ -3,12 +3,7 @@ package com.propro.musicplayerapp;
 import com.propro.musicplayerapp.upnp.IUpnpDevice;
 
 public class DeviceInfo {
-    /*
-    // original implementation
-    public String Name;
 
-    public DeviceInfo(String name){this.Name = name;}
-    */
     private final IUpnpDevice device;
     private final boolean extendedInformation;
 

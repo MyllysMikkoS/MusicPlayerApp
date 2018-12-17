@@ -29,7 +29,6 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
     private LocalDevice localDevice = null;
     private LocalService localService = null;
     private Context ctx = null;
-    private String setFilePath = "";
     private static long songId = -1;
 
     private final static int port = 8192;
@@ -47,18 +46,6 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
         this.ctx = ctx;
         createLocalDevice();
 
-    }
-
-    public void restart()
-    {
-        Log.d(TAG, "Restart mediaServer");
-//		try {
-//			stop();
-//			createLocalDevice();
-//			start();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//		}
     }
 
     public void createLocalDevice() throws ValidationException
@@ -105,7 +92,6 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
             String mime = currSong.mime_type;
 
             if(path!=null)
-                setFilePath = path;
                 songId = currSong.Id;
                 return new ServerObject(path, mime);
 
@@ -153,19 +139,10 @@ public class MediaServer extends com.propro.musicplayerapp.server.SimpleWebServe
 
             if( res != null )
             {
-                /*
-                String version = "1.0";
-                try {
-                    version = ctx.getPackageManager().getPackageInfo(ctx.getPackageName(), 0).versionName;
-                } catch (PackageManager.NameNotFoundException e) {
-                    Log.e(TAG, "Application version name not found");
-                }
-                */
                 // Some DLNA header option
                 res.addHeader("realTimeInfo.dlna.org", "DLNA.ORG_TLAG=*");
                 res.addHeader("contentFeatures.dlna.org", "");
                 res.addHeader("transferMode.dlna.org", "Streaming");
-                //res.addHeader("Server", "DLNADOC/1.50 UPnP/1.0 Cling/2.0 DroidUPnP/"+version +" Android/" + Build.VERSION.RELEASE);
             }
 
             return res;

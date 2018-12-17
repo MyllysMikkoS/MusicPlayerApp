@@ -86,8 +86,6 @@ public class SongsAdapter extends ArrayAdapter<SongInfo> {
                                 Log.d("Song Add to queue: ", "clicked " + position);
                                 QueueSongs.getInstance().add(AllSongs.getInstance().get(position));
                                 CustomUtilities.showToast(getContext(), AllSongs.getInstance().get(position).Title + " added to queue");
-                                //ClingDIDLItem cling_item = new ClingDIDLItem(AllSongs.getInstance().get(position).musicTrack);
-                                //Homescreen.rendererCommand.launchItem(cling_item);
                                 return true;
 
                             default:

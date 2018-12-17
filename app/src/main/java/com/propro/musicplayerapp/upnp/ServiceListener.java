@@ -12,9 +12,7 @@ import org.fourthline.cling.model.meta.Device;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.ServiceConnection;
-import android.content.SharedPreferences;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.util.Log;
 
 import com.propro.musicplayerapp.Homescreen;
@@ -76,7 +74,6 @@ public class ServiceListener implements IServiceListener
         }
         return deviceList;
     }
-    // OWN COMMENT
 
     protected ServiceConnection serviceConnection = new ServiceConnection() {
 
@@ -85,49 +82,7 @@ public class ServiceListener implements IServiceListener
         {
             Log.i(TAG, "Service connection");
             upnpService = (AndroidUpnpService) service;
-            /*
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(ctx);
 
-            if(sharedPref.getBoolean(SettingsActivity.CONTENTDIRECTORY_SERVICE, true))
-            {
-                try
-                {
-                    // Local content directory
-                    if(mediaServer == null)
-                    {
-                        mediaServer = new MediaServer(Main.getLocalIpAddress(ctx), ctx);
-                        mediaServer.start();
-                    }
-                    else
-                    {
-                        mediaServer.restart();
-                    }
-                    upnpService.getRegistry().addDevice(mediaServer.getDevice());
-                }
-                catch (UnknownHostException e1)
-                {
-                    Log.e(TAG, "Creating demo device failed");
-                    Log.e(TAG, "exception", e1);
-                }
-                catch (ValidationException e2)
-                {
-                    Log.e(TAG, "Creating demo device failed");
-                    Log.e(TAG, "exception", e2);
-                }
-                catch (IOException e3)
-                {
-                    Log.e(TAG, "Starting http server failed");
-                    Log.e(TAG, "exception", e3);
-                }
-            }
-            else if(mediaServer != null)
-            {
-                mediaServer.stop();
-                mediaServer = null;
-            }
-            */
-
-            // taken from commented out section
             try
             {
                 // Local content directory
@@ -136,10 +91,7 @@ public class ServiceListener implements IServiceListener
                     mediaServer = new MediaServer(Homescreen.getLocalIpAddress(ctx), ctx);
                     mediaServer.start();
                 }
-                else
-                {
-                    mediaServer.restart();
-                }
+
                 upnpService.getRegistry().addDevice(mediaServer.getDevice());
             }
             catch (UnknownHostException e1)

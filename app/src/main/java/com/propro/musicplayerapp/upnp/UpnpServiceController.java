@@ -15,15 +15,8 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
     protected CObservable rendererObservable;
     protected CObservable contentDirectoryObservable;
 
-    //private final ContentDirectoryDiscovery contentDirectoryDiscovery;
     private final RendererDiscovery rendererDiscovery;
-    /*
-    @Override
-    public ContentDirectoryDiscovery getContentDirectoryDiscovery()
-    {
-        return contentDirectoryDiscovery;
-    }
-    */
+
     @Override
     public RendererDiscovery getRendererDiscovery()
     {
@@ -33,9 +26,6 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
     protected UpnpServiceController()
     {
         rendererObservable = new CObservable();
-        //contentDirectoryObservable = new CObservable();
-
-        //contentDirectoryDiscovery = new ContentDirectoryDiscovery(getServiceListener());
         rendererDiscovery = new RendererDiscovery(getServiceListener());
     }
 
@@ -57,33 +47,9 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
     }
 
     @Override
-    public void setSelectedContentDirectory(IUpnpDevice contentDirectory)
-    {
-        setSelectedContentDirectory(contentDirectory, false);
-    }
-
-    @Override
-    public void setSelectedContentDirectory(IUpnpDevice contentDirectory, boolean force)
-    {
-        // Skip if no change and no force
-        if (!force && contentDirectory != null && this.contentDirectory != null
-                && this.contentDirectory.equals(contentDirectory))
-            return;
-
-        //this.contentDirectory = contentDirectory;
-        //contentDirectoryObservable.notifyAllObservers();
-    }
-
-    @Override
     public IUpnpDevice getSelectedRenderer()
     {
         return renderer;
-    }
-
-    @Override
-    public IUpnpDevice getSelectedContentDirectory()
-    {
-        return contentDirectory;
     }
 
     @Override
@@ -99,24 +65,11 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
         rendererObservable.deleteObserver(o);
     }
 
-    @Override
-    public void addSelectedContentDirectoryObserver(Observer o)
-    {
-        contentDirectoryObservable.addObserver(o);
-    }
-
-    @Override
-    public void delSelectedContentDirectoryObserver(Observer o)
-    {
-        contentDirectoryObservable.deleteObserver(o);
-    }
-
     // Pause the service
     @Override
     public void pause()
     {
         rendererDiscovery.pause(getServiceListener());
-        //contentDirectoryDiscovery.pause(getServiceListener());
     }
 
     // Resume the service
@@ -124,7 +77,6 @@ public abstract class UpnpServiceController implements IUpnpServiceController {
     public void resume(Activity activity)
     {
         rendererDiscovery.resume(getServiceListener());
-        //contentDirectoryDiscovery.resume(getServiceListener());
     }
 
 }
