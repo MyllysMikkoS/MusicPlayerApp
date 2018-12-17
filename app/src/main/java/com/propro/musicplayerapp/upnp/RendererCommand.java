@@ -1,17 +1,6 @@
 package com.propro.musicplayerapp.upnp;
 
-/*
-import org.droidupnp.Main;
-import org.droidupnp.model.cling.CDevice;
-import org.droidupnp.model.cling.RendererState;
-import org.droidupnp.model.cling.TrackMetadata;
-import org.droidupnp.model.cling.didl.ClingDIDLItem;
-import org.droidupnp.model.upnp.IRendererCommand;
-import org.droidupnp.model.upnp.didl.IDIDLItem;
-*/
-
 import com.propro.musicplayerapp.AllSongs;
-import com.propro.musicplayerapp.CustomUtilities;
 import com.propro.musicplayerapp.Homescreen;
 import com.propro.musicplayerapp.MediaButtons;
 import com.propro.musicplayerapp.Queue;
@@ -486,18 +475,28 @@ public class RendererCommand implements Runnable, IRendererCommand {
 
                         updatePositionInfo();
 
-                        //read state
-                        if (rendererState.getState() == RendererState.State.STOP && Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() != -1){
-                            Log.d(TAG, "Completing song");
-                            completeSong();
-                            rendererState.setState(RendererState.State.PLAY);
-                        }
+
 
                         if ((count % 3) == 0)
                         {
                             updateVolume();
                             updateMute();
                             updateTransportInfo();
+
+                            if (rendererState.getState() == RendererState.State.STOP && !Homescreen.localPlayback && !MediaButtons.pause) {
+                                Log.d(TAG, "Changing status");
+
+                                if (QueueSongs.getInstance().size() > 0) {
+                                    if (Homescreen.upnpServiceController.getServiceListener().getMediaServer().getSongId() == QueueSongs.getInstance().get(0).Id) {
+                                        // If adapter is initialized then remove from queue listview
+                                        if (Queue.adapter != null)
+                                            Queue.adapter.remove(QueueSongs.getInstance().get(0));
+                                        QueueSongs.getInstance().remove(0);
+                                        MediaButtons.pause = true;
+                                    }
+
+                                }
+                            }
                         }
 
                         if ((count % 6) == 0)
@@ -554,6 +553,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
                     ClingDIDLItem cling_item = new ClingDIDLItem(AllSongs.getInstance().get(position).musicTrack);
                     Homescreen.rendererCommand.launchItem(cling_item);
                     Log.v("RendererCommand: ", "Served new item");
+                    rendererState.setState(RendererState.State.PLAY);
                 } catch (Exception e) {
                     Log.e("RendererCommand: ", "Error slaunching item", e);
                     // should skip to next and continue queue
@@ -566,6 +566,8 @@ public class RendererCommand implements Runnable, IRendererCommand {
     }
 
     public void skipToNextSong(){
+        completeSong();
+        /*
         try {
             if (QueueSongs.getInstance().size() > 1){
                 // if player was playing before skip then automatically continue
@@ -608,7 +610,7 @@ public class RendererCommand implements Runnable, IRendererCommand {
             //updateProgressBar();
         } catch (Exception e) {
             Log.e("MUSIC SERVICE: ", "Error skipping song", e);
-        }
+        }*/
     }
     /*
     public void toPreviousSong() {
@@ -737,17 +739,6 @@ public class RendererCommand implements Runnable, IRendererCommand {
             // Play song again if not paused
             if (!MediaButtons.pause) prepareNextSong(true);
         }
-        /*
-        try {
-            //Set song info
-            //setSongInfo();
-        } catch (Exception e){
-            Log.d("MUSIC SERVICE: ", "SONG INFO ERROR ON COMPLETION: " + e.toString());
-        }
 
-        //mStopHandler = true;
-        //MediaButtons.progress = 0;
-        //updateProgressBar();
-        */
     }
 }

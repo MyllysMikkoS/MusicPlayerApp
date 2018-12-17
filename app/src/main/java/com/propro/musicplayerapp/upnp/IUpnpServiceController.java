@@ -29,8 +29,6 @@ public interface IUpnpServiceController {
 
     public IServiceListener getServiceListener();
 
-    //public ContentDirectoryDiscovery getContentDirectoryDiscovery();
-
     public RendererDiscovery getRendererDiscovery();
 
     // Pause the service

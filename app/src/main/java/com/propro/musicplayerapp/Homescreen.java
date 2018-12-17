@@ -157,9 +157,6 @@ public class Homescreen extends AppCompatActivity implements Observer {
                     if (localPlayback) {
                         musicService.skipToNext();
                     }
-                    else {
-                        rendererCommand.skipToNextSong();
-                    }
 
                 }
                 // PRESSING PREVIOUS SONG
@@ -172,9 +169,6 @@ public class Homescreen extends AppCompatActivity implements Observer {
                 if (slicePosition == -1){
                     if (localPlayback) {
                         musicService.progressBarChange();
-                    }
-                    else{
-                        CustomUtilities.showToast(getApplicationContext(), "Stream mode doesn't support changing progress");
                     }
 
                 }

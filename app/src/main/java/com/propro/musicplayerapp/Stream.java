@@ -106,9 +106,9 @@ public class Stream extends AppCompatActivity implements Observer, IDeviceDiscov
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
 
-            case R.id.action_refresh:
-                Log.d("Refresh: ", "CALLED");
-                return true;
+            //case R.id.action_refresh:
+              //  Log.d("Refresh: ", "CALLED");
+                //return true;
         }
 
         return(super.onOptionsItemSelected(item));

@@ -163,7 +163,10 @@ public class MediaButtons extends View {
 
                 if(distanceSquare > innerRadiusSquare && distanceSquare < outerRadiusSquare){
                     double angle = Math.atan2(dy, dx);
-
+                    if (!Homescreen.localPlayback) {
+                        CustomUtilities.showToast(getContext(), "Media controls unavailable in stream mode");
+                        return false;
+                    }
                     // if angle is on negative side (on progressBar field) save new progress
                     if(angle < 0){
                         progress = (float) (100 - (angle / -(Math.PI))*100);
@@ -288,6 +291,10 @@ public class MediaButtons extends View {
                         // Update when no progressbar is touched
                         if(mOnSliceClickListener != null && rawSliceIndex != -1 && mInsideProgressbar != 1){
                             // check repeat and shuffle
+                            if (!Homescreen.localPlayback) {
+                                CustomUtilities.showToast(getContext(), "Media controls unavailable in stream mode");
+                                return false;
+                            }
                             if (rawSliceIndex == 1){
                                 if (!shuffle){
                                     shuffle = true;

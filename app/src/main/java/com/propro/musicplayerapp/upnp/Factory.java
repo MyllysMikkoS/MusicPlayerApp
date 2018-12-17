@@ -10,20 +10,6 @@ import com.propro.musicplayerapp.upnp.ServiceListener;
 
 public class Factory implements IFactory {
 
-    /*
-    @Override
-    public IContentDirectoryCommand createContentDirectoryCommand()
-    {
-        AndroidUpnpService aus = ((ServiceListener) Main.upnpServiceController.getServiceListener()).getUpnpService();
-        ControlPoint cp = null;
-        if (aus != null)
-            cp = aus.getControlPoint();
-        if (cp != null)
-            return new ContentDirectoryCommand(cp);
-
-        return null;
-    }
-    */
     @Override
     public IRendererCommand createRendererCommand(IRendererState rs)
     {
